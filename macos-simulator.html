@@ -2854,23 +2854,49 @@
         }
 
         // Finder Functions
-        let finderCurrentPath = 'Desktop';
-        let finderHistory = ['Desktop'];
-        let finderHistoryIndex = 0;
+        // Per-window Finder state storage
+        const finderStates = {};
+
+        function getFinderState(windowEl) {
+            const windowId = windowEl ? windowEl.id : null;
+            if (!windowId) return null;
+
+            if (!finderStates[windowId]) {
+                finderStates[windowId] = {
+                    currentPath: 'Desktop',
+                    history: ['Desktop'],
+                    historyIndex: 0
+                };
+            }
+            return finderStates[windowId];
+        }
+
+        function getActiveFinderWindow() {
+            // Find the active Finder window
+            const activeWindow = state.windows.find(w => w.appId === 'finder' && document.getElementById(w.id) === state.activeWindow);
+            return activeWindow ? document.getElementById(activeWindow.id) : null;
+        }
 
         function finderNavigate(path, addToHistory = true) {
-            finderCurrentPath = path;
+            const windowEl = getActiveFinderWindow();
+            if (!windowEl) return;
+
+            const finderState = getFinderState(windowEl);
+            finderState.currentPath = path;
 
             // Only modify history if this is a new navigation (not back/forward)
             if (addToHistory) {
-                finderHistory = finderHistory.slice(0, finderHistoryIndex + 1);
-                finderHistory.push(path);
-                finderHistoryIndex = finderHistory.length - 1;
+                finderState.history = finderState.history.slice(0, finderState.historyIndex + 1);
+                finderState.history.push(path);
+                finderState.historyIndex = finderState.history.length - 1;
             }
 
-            document.getElementById('finder-path').textContent = path;
+            const pathEl = windowEl.querySelector('#finder-path') || windowEl.querySelector('[id^="finder-path"]');
+            if (pathEl) pathEl.textContent = path;
             const items = state.fileSystem['/'][path]?.contents || {};
-            const itemsContainer = document.getElementById('finder-items');
+            const itemsContainer = windowEl.querySelector('#finder-items');
+
+            if (!itemsContainer) return;
 
             itemsContainer.innerHTML = '';
             let count = 0;
@@ -2892,10 +2918,11 @@
                 itemsContainer.appendChild(div);
             }
 
-            document.getElementById('finder-status').textContent = `${count} items`;
+            const statusBar = windowEl.querySelector('#finder-status');
+            if (statusBar) statusBar.textContent = `${count} items`;
 
-            // Update sidebar active state
-            document.querySelectorAll('.finder-sidebar .sidebar-item').forEach(item => {
+            // Update sidebar active state within this window only
+            windowEl.querySelectorAll('.finder-sidebar .sidebar-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.textContent.includes(path)) {
                     item.classList.add('active');
@@ -2904,16 +2931,24 @@
         }
 
         function finderBack() {
-            if (finderHistoryIndex > 0) {
-                finderHistoryIndex--;
-                finderNavigate(finderHistory[finderHistoryIndex], false);
+            const windowEl = getActiveFinderWindow();
+            if (!windowEl) return;
+
+            const finderState = getFinderState(windowEl);
+            if (finderState.historyIndex > 0) {
+                finderState.historyIndex--;
+                finderNavigate(finderState.history[finderState.historyIndex], false);
             }
         }
 
         function finderForward() {
-            if (finderHistoryIndex < finderHistory.length - 1) {
-                finderHistoryIndex++;
-                finderNavigate(finderHistory[finderHistoryIndex], false);
+            const windowEl = getActiveFinderWindow();
+            if (!windowEl) return;
+
+            const finderState = getFinderState(windowEl);
+            if (finderState.historyIndex < finderState.history.length - 1) {
+                finderState.historyIndex++;
+                finderNavigate(finderState.history[finderState.historyIndex], false);
             }
         }
 
@@ -3163,7 +3198,13 @@
   help        - show this help message`;
 
                 case 'ls':
-                    return 'Applications  Desktop  Documents  Downloads  Library  Music  Pictures  Public';
+                    // List contents of current directory from file system
+                    const currentPath = state.terminal.currentDir === '~' ? 'Desktop' : state.terminal.currentDir;
+                    const contents = state.fileSystem['/'][currentPath]?.contents || {};
+                    if (Object.keys(contents).length === 0) {
+                        return ''; // Empty directory
+                    }
+                    return Object.keys(contents).join('  ');
 
                 case 'pwd':
                     return `/Users/user${state.terminal.currentDir !== '~' ? '/' + state.terminal.currentDir : ''}`;
@@ -3965,9 +4006,54 @@
             renderMusicPlayer();
         }
 
+        let musicPlaybackInterval = null;
+
         function togglePlayPause() {
             state.music.playing = !state.music.playing;
+
+            if (state.music.playing) {
+                startMusicPlayback();
+            } else {
+                stopMusicPlayback();
+            }
+
             renderMusicPlayer();
+        }
+
+        function startMusicPlayback() {
+            if (musicPlaybackInterval) clearInterval(musicPlaybackInterval);
+
+            // Update progress every 500ms
+            musicPlaybackInterval = setInterval(() => {
+                if (!state.music.playing) {
+                    stopMusicPlayback();
+                    return;
+                }
+
+                // Simulate playback (3 minutes = 180 seconds)
+                state.music.currentTime += 0.005; // Increment by 0.5%
+
+                if (state.music.currentTime >= 1) {
+                    // Song finished, play next
+                    state.music.currentTime = 0;
+                    stopMusicPlayback();
+                    nextSong();
+                    return;
+                }
+
+                // Update progress bar
+                const progressFill = document.querySelector('.music-progress-fill');
+                if (progressFill) {
+                    progressFill.style.width = (state.music.currentTime * 100) + '%';
+                }
+            }, 500);
+        }
+
+        function stopMusicPlayback() {
+            if (musicPlaybackInterval) {
+                clearInterval(musicPlaybackInterval);
+                musicPlaybackInterval = null;
+            }
         }
 
         function nextSong() {
@@ -4582,6 +4668,37 @@
                 }
             }
         };
+
+        // Global keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // CMD/CTRL + W - Close active window
+            if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
+                e.preventDefault();
+                if (state.activeWindow) {
+                    const activeWindowData = state.windows.find(w => document.getElementById(w.id) === state.activeWindow);
+                    if (activeWindowData) {
+                        WindowManager.closeWindow(activeWindowData.id);
+                    }
+                }
+            }
+
+            // CMD/CTRL + M - Minimize active window
+            if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
+                e.preventDefault();
+                if (state.activeWindow) {
+                    const activeWindowData = state.windows.find(w => document.getElementById(w.id) === state.activeWindow);
+                    if (activeWindowData) {
+                        WindowManager.minimizeWindow(activeWindowData.id);
+                    }
+                }
+            }
+
+            // CMD/CTRL + N - New Finder window
+            if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+                e.preventDefault();
+                launchApp('finder');
+            }
+        });
 
         // Update dock click to restore minimized windows
         // Use event delegation to avoid multiple listeners
