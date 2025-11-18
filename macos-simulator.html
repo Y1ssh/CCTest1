@@ -556,7 +556,7 @@
 
         .safari-content {
             flex: 1;
-            background: white;
+            background: var(--bg-primary);
             overflow-y: auto;
             padding: 20px;
         }
@@ -1126,6 +1126,307 @@
             animation: fadeIn 0.3s ease-out;
         }
 
+        /* Messages App Styles */
+        .messages-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .messages-sidebar {
+            width: 200px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .conversation-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .conversation-item.active {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .conversation-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--macos-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .conversation-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-item.active .conversation-preview {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .messages-thread {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+        }
+
+        .messages-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .messages-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message-sent {
+            align-self: flex-end;
+            background: #007AFF;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-received {
+            align-self: flex-start;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 3px;
+        }
+
+        .messages-input-container {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        .messages-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            outline: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .messages-send-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background: var(--macos-blue);
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .messages-send-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Reminders App Styles */
+        .reminders-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .reminders-sidebar {
+            width: 200px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 10px;
+            overflow-y: auto;
+        }
+
+        .reminders-list-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.15s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reminders-list-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .reminders-list-item.active {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .reminders-count {
+            font-size: 12px;
+            opacity: 0.7;
+            font-weight: 600;
+        }
+
+        .reminders-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .reminders-header {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .reminders-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .reminder-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: var(--bg-secondary);
+            transition: all 0.15s;
+        }
+
+        .reminder-item:hover {
+            background: var(--border-color);
+        }
+
+        .reminder-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .reminder-checkbox:hover {
+            border-color: var(--macos-blue);
+        }
+
+        .reminder-checkbox.checked {
+            background: var(--macos-blue);
+            border-color: var(--macos-blue);
+        }
+
+        .reminder-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .reminder-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .reminder-text.completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .reminder-flag {
+            color: #ff9500;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.15s;
+        }
+
+        .reminder-flag.flagged {
+            opacity: 1;
+        }
+
+        .reminder-delete {
+            color: #ff3b30;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .reminder-item:hover .reminder-delete {
+            opacity: 0.7;
+        }
+
+        .reminder-delete:hover {
+            opacity: 1 !important;
+        }
+
+        .add-reminder-btn {
+            padding: 12px;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--macos-blue);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-reminder-btn:hover {
+            border-color: var(--macos-blue);
+            background: rgba(0,122,255,0.05);
+        }
+
         /* Boot Screen Styles */
         .boot-screen {
             position: fixed;
@@ -1482,14 +1783,16 @@
 
     <!-- Dock -->
     <div id="dock">
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%2300a2ff%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📁</text></svg>')" onclick="launchApp('finder')" data-app="finder"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22safari%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2300c0ff%22/><stop offset=%22100%25%22 stop-color=%22%230080ff%22/></linearGradient></defs><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22url(%23safari)%22/><text x=%2250%22 y=%2270%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22>🧭</text></svg>')" onclick="launchApp('safari')" data-app="safari"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231e1e1e%22 rx=%2215%22/><text x=%2250%22 y=%2265%22 font-size=%2255%22 text-anchor=%22middle%22 fill=%22%2300ff00%22>&gt;_</text></svg>')" onclick="launchApp('terminal')" data-app="terminal"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff9500%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>Σ</text></svg>')" onclick="launchApp('calculator')" data-app="calculator"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ffd60a%22 rx=%2215%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📝</text></svg>')" onclick="launchApp('notes')" data-app="notes"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff3b30%22 rx=%2215%22/><text x=%2250%22 y=%2275%22 font-size=%2270%22 text-anchor=%22middle%22 fill=%22white%22>📅</text></svg>')" onclick="launchApp('calendar')" data-app="calendar"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22mail%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2354b6f8%22/><stop offset=%22100%25%22 stop-color=%22%231a7ec8%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 fill=%22url(%23mail)%22 rx=%2220%22/><text x=%2250%22 y=%2275%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>✉️</text></svg>')" onclick="launchApp('mail')" data-app="mail"></div>
-        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23a0a0a0%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>⚙️</text></svg>')" onclick="launchApp('settings')" data-app="settings"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%2300a2ff%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📁</text></svg>')" data-app="finder"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22safari%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2300c0ff%22/><stop offset=%22100%25%22 stop-color=%22%230080ff%22/></linearGradient></defs><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22url(%23safari)%22/><text x=%2250%22 y=%2270%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22>🧭</text></svg>')" data-app="safari"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231e1e1e%22 rx=%2215%22/><text x=%2250%22 y=%2265%22 font-size=%2255%22 text-anchor=%22middle%22 fill=%22%2300ff00%22>&gt;_</text></svg>')" data-app="terminal"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff9500%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>Σ</text></svg>')" data-app="calculator"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ffd60a%22 rx=%2215%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📝</text></svg>')" data-app="notes"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff3b30%22 rx=%2215%22/><text x=%2250%22 y=%2275%22 font-size=%2270%22 text-anchor=%22middle%22 fill=%22white%22>📅</text></svg>')" data-app="calendar"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22mail%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2354b6f8%22/><stop offset=%22100%25%22 stop-color=%22%231a7ec8%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 fill=%22url(%23mail)%22 rx=%2220%22/><text x=%2250%22 y=%2275%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>✉️</text></svg>')" data-app="mail"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23a0a0a0%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>⚙️</text></svg>')" data-app="settings"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22msg%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2300d856%22/><stop offset=%22100%25%22 stop-color=%22%2300a843%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 fill=%22url(%23msg)%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>💬</text></svg>')" data-app="messages"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff9500%22 rx=%2215%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>✓</text></svg>')" data-app="reminders"></div>
 
         <div class="dock-divider"></div>
 
@@ -1584,6 +1887,62 @@
                     drafts: [],
                     trash: []
                 }
+            },
+            messages: {
+                activeConversation: 1,
+                conversations: [
+                    {
+                        id: 1,
+                        name: 'Sarah Johnson',
+                        avatar: '👩',
+                        messages: [
+                            { id: 1, text: 'Hey! How are you?', sent: false, time: '10:30 AM' },
+                            { id: 2, text: 'I\'m doing great! How about you?', sent: true, time: '10:31 AM' },
+                            { id: 3, text: 'Pretty good! Want to grab lunch later?', sent: false, time: '10:32 AM' },
+                            { id: 4, text: 'Sure! How about 12:30?', sent: true, time: '10:33 AM' },
+                            { id: 5, text: 'Perfect! See you then 😊', sent: false, time: '10:34 AM' }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Work Team',
+                        avatar: '💼',
+                        messages: [
+                            { id: 1, text: 'Meeting at 2 PM today', sent: false, time: '9:00 AM' },
+                            { id: 2, text: 'Got it, I\'ll be there', sent: true, time: '9:05 AM' },
+                            { id: 3, text: 'Don\'t forget to bring your reports', sent: false, time: '9:10 AM' }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Family Group',
+                        avatar: '👨‍👩‍👧‍👦',
+                        messages: [
+                            { id: 1, text: 'Dinner this Sunday?', sent: false, time: 'Yesterday' },
+                            { id: 2, text: 'Sounds great! What time?', sent: true, time: 'Yesterday' },
+                            { id: 3, text: 'Around 6 PM', sent: false, time: 'Yesterday' }
+                        ]
+                    }
+                ]
+            },
+            reminders: {
+                activeList: 'all',
+                lists: [
+                    { id: 'all', name: 'All', count: 5 },
+                    { id: 'today', name: 'Today', count: 2 },
+                    { id: 'scheduled', name: 'Scheduled', count: 3 },
+                    { id: 'flagged', name: 'Flagged', count: 1 },
+                    { id: 'personal', name: 'Personal', count: 2 },
+                    { id: 'work', name: 'Work', count: 3 }
+                ],
+                items: [
+                    { id: 1, text: 'Buy groceries', completed: false, flagged: false, list: 'personal', dueDate: 'today' },
+                    { id: 2, text: 'Call dentist', completed: true, flagged: false, list: 'personal', dueDate: null },
+                    { id: 3, text: 'Finish project report', completed: false, flagged: true, list: 'work', dueDate: 'tomorrow' },
+                    { id: 4, text: 'Team meeting prep', completed: false, flagged: false, list: 'work', dueDate: 'today' },
+                    { id: 5, text: 'Review code changes', completed: false, flagged: false, list: 'work', dueDate: 'tomorrow' }
+                ],
+                nextId: 6
             }
         };
 
@@ -2009,6 +2368,50 @@
                         </div>
                     `;
                     renderMailList();
+                }
+            },
+            messages: {
+                id: 'messages',
+                name: 'Messages',
+                width: '900px',
+                height: '650px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="messages-container">
+                            <div class="messages-sidebar" id="messages-sidebar"></div>
+                            <div class="messages-thread">
+                                <div class="messages-header" id="messages-header">Select a conversation</div>
+                                <div class="messages-content" id="messages-content"></div>
+                                <div class="messages-input-container">
+                                    <input type="text" class="messages-input" id="messages-input" placeholder="iMessage">
+                                    <button class="messages-send-btn" onclick="sendMessage()">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    renderConversations();
+                }
+            },
+            reminders: {
+                id: 'reminders',
+                name: 'Reminders',
+                width: '700px',
+                height: '600px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="reminders-container">
+                            <div class="reminders-sidebar" id="reminders-sidebar"></div>
+                            <div class="reminders-main">
+                                <div class="reminders-header" id="reminders-header">All</div>
+                                <div class="reminders-list" id="reminders-list"></div>
+                                <button class="add-reminder-btn" onclick="addNewReminder()">
+                                    <span>+</span> New Reminder
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    renderReminderLists();
+                    renderReminders();
                 }
             }
         };
@@ -2765,6 +3168,220 @@
 
         function composeMail() {
             alert('Compose mail functionality would open a new window here!');
+        }
+
+        // ========================================
+        // MESSAGES APP FUNCTIONS
+        // ========================================
+
+        function renderConversations() {
+            const sidebar = document.getElementById('messages-sidebar');
+            sidebar.innerHTML = '';
+
+            state.messages.conversations.forEach(conv => {
+                const div = document.createElement('div');
+                div.className = 'conversation-item' + (conv.id === state.messages.activeConversation ? ' active' : '');
+                const lastMsg = conv.messages[conv.messages.length - 1];
+                div.innerHTML = `
+                    <div class="conversation-avatar">${conv.avatar}</div>
+                    <div class="conversation-name">${conv.name}</div>
+                    <div class="conversation-preview">${lastMsg.text}</div>
+                `;
+                div.onclick = () => selectConversation(conv.id);
+                sidebar.appendChild(div);
+            });
+
+            // Load active conversation
+            if (state.messages.activeConversation) {
+                loadConversation(state.messages.activeConversation);
+            }
+        }
+
+        function selectConversation(convId) {
+            state.messages.activeConversation = convId;
+            renderConversations();
+            loadConversation(convId);
+        }
+
+        function loadConversation(convId) {
+            const conv = state.messages.conversations.find(c => c.id === convId);
+            if (!conv) return;
+
+            document.getElementById('messages-header').textContent = conv.name;
+
+            const content = document.getElementById('messages-content');
+            content.innerHTML = '';
+
+            conv.messages.forEach(msg => {
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${msg.sent ? 'message-sent' : 'message-received'}`;
+                bubble.innerHTML = `
+                    ${msg.text}
+                    <div class="message-time">${msg.time}</div>
+                `;
+                content.appendChild(bubble);
+            });
+
+            // Scroll to bottom
+            content.scrollTop = content.scrollHeight;
+
+            // Focus input
+            document.getElementById('messages-input').focus();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messages-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const conv = state.messages.conversations.find(c => c.id === state.messages.activeConversation);
+            if (!conv) return;
+
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            conv.messages.push({
+                id: conv.messages.length + 1,
+                text: text,
+                sent: true,
+                time: time
+            });
+
+            input.value = '';
+            loadConversation(state.messages.activeConversation);
+            saveSystemState();
+        }
+
+        // Handle Enter key in messages input
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesInput = document.getElementById('messages-input');
+            if (messagesInput) {
+                messagesInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+        });
+
+        // ========================================
+        // REMINDERS APP FUNCTIONS
+        // ========================================
+
+        function renderReminderLists() {
+            const sidebar = document.getElementById('reminders-sidebar');
+            sidebar.innerHTML = '';
+
+            state.reminders.lists.forEach(list => {
+                const div = document.createElement('div');
+                div.className = 'reminders-list-item' + (list.id === state.reminders.activeList ? ' active' : '');
+                div.innerHTML = `
+                    <span>${list.name}</span>
+                    <span class="reminders-count">${getListCount(list.id)}</span>
+                `;
+                div.onclick = () => selectReminderList(list.id);
+                sidebar.appendChild(div);
+            });
+        }
+
+        function getListCount(listId) {
+            if (listId === 'all') {
+                return state.reminders.items.filter(i => !i.completed).length;
+            } else if (listId === 'today') {
+                return state.reminders.items.filter(i => !i.completed && i.dueDate === 'today').length;
+            } else if (listId === 'scheduled') {
+                return state.reminders.items.filter(i => !i.completed && i.dueDate).length;
+            } else if (listId === 'flagged') {
+                return state.reminders.items.filter(i => !i.completed && i.flagged).length;
+            } else {
+                return state.reminders.items.filter(i => !i.completed && i.list === listId).length;
+            }
+        }
+
+        function selectReminderList(listId) {
+            state.reminders.activeList = listId;
+            const listData = state.reminders.lists.find(l => l.id === listId);
+            document.getElementById('reminders-header').textContent = listData.name;
+            renderReminderLists();
+            renderReminders();
+        }
+
+        function renderReminders() {
+            const list = document.getElementById('reminders-list');
+            list.innerHTML = '';
+
+            let items = state.reminders.items;
+
+            // Filter based on active list
+            if (state.reminders.activeList === 'today') {
+                items = items.filter(i => i.dueDate === 'today');
+            } else if (state.reminders.activeList === 'scheduled') {
+                items = items.filter(i => i.dueDate);
+            } else if (state.reminders.activeList === 'flagged') {
+                items = items.filter(i => i.flagged);
+            } else if (state.reminders.activeList !== 'all') {
+                items = items.filter(i => i.list === state.reminders.activeList);
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'reminder-item';
+                div.innerHTML = `
+                    <div class="reminder-checkbox ${item.completed ? 'checked' : ''}" onclick="toggleReminder(${item.id})"></div>
+                    <div class="reminder-text ${item.completed ? 'completed' : ''}">${item.text}</div>
+                    <div class="reminder-flag ${item.flagged ? 'flagged' : ''}" onclick="toggleFlag(${item.id})">🚩</div>
+                    <div class="reminder-delete" onclick="deleteReminder(${item.id})">×</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleReminder(id) {
+            const item = state.reminders.items.find(i => i.id === id);
+            if (item) {
+                item.completed = !item.completed;
+                renderReminderLists();
+                renderReminders();
+                saveSystemState();
+            }
+        }
+
+        function toggleFlag(id) {
+            const item = state.reminders.items.find(i => i.id === id);
+            if (item) {
+                item.flagged = !item.flagged;
+                renderReminderLists();
+                renderReminders();
+                saveSystemState();
+            }
+        }
+
+        function deleteReminder(id) {
+            const index = state.reminders.items.findIndex(i => i.id === id);
+            if (index > -1) {
+                state.reminders.items.splice(index, 1);
+                renderReminderLists();
+                renderReminders();
+                saveSystemState();
+            }
+        }
+
+        function addNewReminder() {
+            const text = prompt('New reminder:');
+            if (text && text.trim()) {
+                const newReminder = {
+                    id: state.reminders.nextId++,
+                    text: text.trim(),
+                    completed: false,
+                    flagged: false,
+                    list: state.reminders.activeList === 'all' || state.reminders.activeList === 'today' || state.reminders.activeList === 'scheduled' || state.reminders.activeList === 'flagged' ? 'personal' : state.reminders.activeList,
+                    dueDate: null
+                };
+                state.reminders.items.push(newReminder);
+                renderReminderLists();
+                renderReminders();
+                saveSystemState();
+            }
         }
 
         // Spotlight Search
