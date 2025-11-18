@@ -2093,7 +2093,7 @@
         <div class="dock-divider"></div>
 
         <!-- Downloads -->
-        <div class="dock-item">
+        <div class="dock-item" data-app="downloads">
             <svg viewBox="0 0 128 128" width="50" height="50">
                 <rect width="128" height="128" rx="20" fill="#666"/>
                 <path d="M 64 35 L 64 75 M 50 65 L 64 80 L 78 65" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2102,7 +2102,7 @@
         </div>
 
         <!-- Trash -->
-        <div class="dock-item">
+        <div class="dock-item" data-app="trash">
             <svg viewBox="0 0 128 128" width="50" height="50">
                 <rect width="128" height="128" rx="20" fill="#888"/>
                 <rect x="35" y="50" width="58" height="50" rx="5" fill="white"/>
@@ -2127,28 +2127,51 @@
     <div class="control-center" id="control-center">
         <div class="control-center-grid">
             <div class="control-item">
-                <div class="control-icon">📶</div>
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>
+                </svg>
                 <div class="control-label">Wi-Fi</div>
             </div>
             <div class="control-item">
-                <div class="control-icon">🔵</div>
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <path d="M6.5 6.5l11 11m-11 0l11-11"/>
+                    <circle cx="12" cy="12" r="10"/>
+                </svg>
                 <div class="control-label">Bluetooth</div>
             </div>
             <div class="control-item">
-                <div class="control-icon">✈️</div>
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <path d="M21 16v-2l-8 5V3.5l8 5V6"/>
+                    <path d="M14 9l7-4M3 9l11 6M3 15l11-6"/>
+                </svg>
                 <div class="control-label">AirDrop</div>
             </div>
             <div class="control-item">
-                <div class="control-icon">🌙</div>
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
                 <div class="control-label">Focus</div>
             </div>
             <div class="control-item full-width">
-                <div class="control-icon">☀️</div>
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
                 <div class="control-label">Display</div>
                 <input type="range" min="0" max="100" value="75" onclick="event.stopPropagation()">
             </div>
             <div class="control-item full-width">
-                <div class="control-icon">🔊</div>
+                <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
                 <div class="control-label">Sound</div>
                 <input type="range" min="0" max="100" value="50" onclick="event.stopPropagation()">
             </div>
@@ -2206,6 +2229,10 @@
                             'Calculator': { type: 'app' },
                             'Notes': { type: 'app' }
                         }
+                    },
+                    'Trash': {
+                        type: 'folder',
+                        contents: {}
                     }
                 }
             },
@@ -2478,6 +2505,7 @@
                                     <div class="sidebar-item" onclick="finderNavigate('Documents')">📄 Documents</div>
                                     <div class="sidebar-item" onclick="finderNavigate('Downloads')">📥 Downloads</div>
                                     <div class="sidebar-item" onclick="finderNavigate('Applications')">📦 Applications</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Trash')">🗑️ Trash</div>
                                 </div>
                             </div>
                             <div class="finder-main">
@@ -2766,6 +2794,61 @@
                     `;
                     initMap();
                 }
+            },
+            trash: {
+                id: 'trash',
+                name: 'Trash',
+                width: '900px',
+                height: '600px',
+                toolbar: `
+                    <button class="btn" onclick="emptyTrash()">Empty Trash</button>
+                `,
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="finder-container">
+                            <div class="finder-main" style="width: 100%;">
+                                <div class="finder-items" id="trash-items"></div>
+                                <div class="finder-statusbar" id="trash-status">0 items</div>
+                            </div>
+                        </div>
+                    `;
+                    renderTrashContents();
+                }
+            },
+            downloads: {
+                id: 'downloads',
+                name: 'Downloads',
+                width: '900px',
+                height: '600px',
+                toolbar: `
+                    <button class="btn" onclick="finderBack()">◀</button>
+                    <button class="btn" onclick="finderForward()">▶</button>
+                    <span style="flex: 1; padding: 0 15px;" id="finder-path">Downloads</span>
+                    <button class="btn">⊞</button>
+                    <button class="btn">⊟</button>
+                    <button class="btn">≣</button>
+                `,
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="finder-container">
+                            <div class="finder-sidebar">
+                                <div class="sidebar-section">
+                                    <div class="sidebar-title">Favorites</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Desktop')">📱 Desktop</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Documents')">📄 Documents</div>
+                                    <div class="sidebar-item active" onclick="finderNavigate('Downloads')">📥 Downloads</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Applications')">📦 Applications</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Trash')">🗑️ Trash</div>
+                                </div>
+                            </div>
+                            <div class="finder-main">
+                                <div class="finder-items" id="finder-items"></div>
+                                <div class="finder-statusbar" id="finder-status">0 items</div>
+                            </div>
+                        </div>
+                    `;
+                    finderNavigate('Downloads');
+                }
             }
         };
 
@@ -2802,7 +2885,7 @@
 
         function finderNavigate(folderName) {
             // Check if it's a top-level folder
-            if (['Desktop', 'Documents', 'Downloads', 'Applications'].includes(folderName)) {
+            if (['Desktop', 'Documents', 'Downloads', 'Applications', 'Trash'].includes(folderName)) {
                 finderCurrentPath = [folderName];
             } else {
                 // It's a subfolder, navigate into it
@@ -2873,6 +2956,62 @@
             }
         }
 
+        // Trash Functions
+        function renderTrashContents() {
+            const trashFolder = state.fileSystem['/']['Trash'];
+            const items = trashFolder?.contents || {};
+            const itemsContainer = document.getElementById('trash-items');
+            const statusBar = document.getElementById('trash-status');
+
+            if (!itemsContainer) return;
+
+            itemsContainer.innerHTML = '';
+            let count = 0;
+
+            for (const [name, item] of Object.entries(items)) {
+                count++;
+                const icon = item.type === 'folder' ? '📁' : '📄';
+                const div = document.createElement('div');
+                div.className = 'finder-item';
+                div.innerHTML = `
+                    <div class="finder-icon">${icon}</div>
+                    <div class="finder-name">${name}</div>
+                `;
+                itemsContainer.appendChild(div);
+            }
+
+            if (statusBar) {
+                statusBar.textContent = `${count} items`;
+            }
+        }
+
+        function emptyTrash() {
+            if (confirm('Are you sure you want to permanently erase the items in the Trash?')) {
+                state.fileSystem['/']['Trash'].contents = {};
+                renderTrashContents();
+                alert('Trash emptied successfully.');
+            }
+        }
+
+        function moveToTrash(iconId) {
+            const iconIndex = desktopIcons.findIndex(i => i.id === iconId);
+            if (iconIndex === -1) return;
+
+            const icon = desktopIcons[iconIndex];
+
+            // Add to Trash folder
+            state.fileSystem['/']['Trash'].contents[icon.name] = {
+                type: icon.type || 'file',
+                originalLocation: 'Desktop'
+            };
+
+            // Remove from desktop
+            desktopIcons.splice(iconIndex, 1);
+            renderDesktopIcons();
+
+            console.log(`Moved ${icon.name} to Trash`);
+        }
+
         // Safari Functions
         function renderSafariTabs() {
             const tabsContainer = document.getElementById('safari-tabs');
@@ -2900,62 +3039,7 @@
             tabsContainer.appendChild(newTabBtn);
         }
 
-        function renderSafariContent() {
-            const activeTab = state.safari.tabs.find(t => t.active);
-            if (!activeTab) return;
-
-            const content = document.getElementById('safari-content');
-            document.getElementById('address-bar').value = activeTab.url;
-
-            // Simulate different web pages
-            if (activeTab.url.includes('apple.com')) {
-                content.innerHTML = `
-                    <h1>Welcome to Apple</h1>
-                    <p>This is a simulated version of apple.com</p>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
-                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
-                            <h3>MacBook Pro</h3>
-                            <p>The most powerful Mac ever.</p>
-                        </div>
-                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
-                            <h3>iPhone 15</h3>
-                            <p>So advanced. So beautiful.</p>
-                        </div>
-                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
-                            <h3>AirPods Pro</h3>
-                            <p>Rebuilt from the sound up.</p>
-                        </div>
-                    </div>
-                `;
-            } else if (activeTab.url.includes('google')) {
-                content.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px;">
-                        <h1 style="font-size: 72px; margin-bottom: 30px;">Google</h1>
-                        <input type="text" placeholder="Search Google or type a URL" style="width: 500px; padding: 15px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px;">
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `
-                    <h1>Welcome to Safari</h1>
-                    <p>Enter a URL or search query in the address bar above.</p>
-                    <h2 style="margin-top: 40px;">Favorites</h2>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px;">
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;" onclick="safariNavigate('https://www.apple.com')">
-                            🍎 Apple
-                        </div>
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;" onclick="safariNavigate('https://www.google.com')">
-                            🔍 Google
-                        </div>
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
-                            📰 News
-                        </div>
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
-                            🎵 Music
-                        </div>
-                    </div>
-                `;
-            }
-        }
+        // This duplicate function has been removed - see the correct version below around line 4586
 
         function createSafariTab() {
             const newTab = {
@@ -4594,39 +4678,79 @@
             const addressBar = document.getElementById('address-bar');
             if (addressBar) addressBar.value = url;
 
-            // Try to load in iframe
-            content.innerHTML = `
-                <div style="position: relative; width: 100%; height: 100%;">
-                    <iframe src="${url}"
-                            style="width: 100%; height: 100%; border: none;"
-                            sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox"
-                            onerror="handleIframeError('${url}')">
-                    </iframe>
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                                background: var(--bg-secondary); padding: 40px; border-radius: 12px; text-align: center;
-                                display: none;" id="iframe-error-${activeTab.id}">
-                        <h2>Cannot Display Page</h2>
-                        <p>This website cannot be embedded due to security restrictions.</p>
-                        <a href="${url}" target="_blank" style="display: inline-block; margin-top: 20px;
-                           padding: 10px 20px; background: var(--macos-blue); color: white;
-                           text-decoration: none; border-radius: 8px;">Open in New Tab →</a>
+            // Show useful favorites page for blank/empty URLs
+            if (!url || url === 'about:blank' || url === '') {
+                content.innerHTML = `
+                    <div style="padding: 60px 40px; text-align: center;">
+                        <h1 style="font-size: 48px; margin-bottom: 30px; font-weight: 600;">Favorites</h1>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 900px; margin: 0 auto;">
+                            <a href="https://wikipedia.org" target="_blank" style="padding: 40px 30px; background: var(--bg-secondary); border-radius: 16px; text-decoration: none; color: var(--text-primary); transition: transform 0.2s; display: block;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📚</div>
+                                <div style="font-weight: 500;">Wikipedia</div>
+                            </a>
+                            <a href="https://github.com" target="_blank" style="padding: 40px 30px; background: var(--bg-secondary); border-radius: 16px; text-decoration: none; color: var(--text-primary); transition: transform 0.2s; display: block;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">💻</div>
+                                <div style="font-weight: 500;">GitHub</div>
+                            </a>
+                            <a href="https://archive.org" target="_blank" style="padding: 40px 30px; background: var(--bg-secondary); border-radius: 16px; text-decoration: none; color: var(--text-primary); transition: transform 0.2s; display: block;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                                <div style="font-weight: 500;">Archive.org</div>
+                            </a>
+                            <a href="https://unsplash.com" target="_blank" style="padding: 40px 30px; background: var(--bg-secondary); border-radius: 16px; text-decoration: none; color: var(--text-primary); transition: transform 0.2s; display: block;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📷</div>
+                                <div style="font-weight: 500;">Unsplash</div>
+                            </a>
+                        </div>
+                        <p style="margin-top: 50px; color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+                            Note: Due to browser security restrictions, most websites cannot be embedded in iframes.<br>
+                            Click any favorite above to open in a new browser tab.
+                        </p>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // Try to load URL in iframe, with honest error handling
+                content.innerHTML = `
+                    <div style="position: relative; width: 100%; height: 100%;">
+                        <iframe src="${url}"
+                                style="width: 100%; height: 100%; border: none;"
+                                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox"
+                                onerror="handleIframeError('${url}')">
+                        </iframe>
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                    background: var(--bg-secondary); padding: 40px; border-radius: 12px; text-align: center;
+                                    display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);" id="iframe-error-${activeTab.id}">
+                            <h2 style="margin-bottom: 15px;">Cannot Display This Page</h2>
+                            <p style="color: var(--text-secondary); margin-bottom: 25px; max-width: 400px;">
+                                <strong>${url}</strong><br><br>
+                                This website cannot be embedded due to security restrictions (X-Frame-Options or CSP headers).
+                            </p>
+                            <a href="${url}" target="_blank" style="display: inline-block; padding: 12px 24px; background: var(--macos-blue); color: white; text-decoration: none; border-radius: 8px; font-weight: 500;">
+                                Open in New Tab →
+                            </a>
+                        </div>
+                    </div>
+                `;
 
-            // Check if iframe loaded after a delay
-            setTimeout(() => {
-                try {
-                    const iframe = content.querySelector('iframe');
-                    if (iframe && !iframe.contentWindow.location.href) {
-                        throw new Error('Cannot access iframe');
+                // Check if iframe loaded after a delay
+                setTimeout(() => {
+                    try {
+                        const iframe = content.querySelector('iframe');
+                        if (iframe) {
+                            // Try to access iframe content to see if it loaded
+                            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                            if (!iframeDoc || iframeDoc.body.children.length === 0) {
+                                throw new Error('Cannot access iframe');
+                            }
+                        }
+                    } catch (e) {
+                        // Show error message
+                        const iframe = content.querySelector('iframe');
+                        if (iframe) iframe.style.display = 'none';
+                        const errorDiv = document.getElementById(`iframe-error-${activeTab.id}`);
+                        if (errorDiv) errorDiv.style.display = 'block';
                     }
-                } catch (e) {
-                    // Show error message
-                    const errorDiv = document.getElementById(`iframe-error-${activeTab.id}`);
-                    if (errorDiv) errorDiv.style.display = 'block';
-                }
-            }, 2000);
+                }, 2000);
+            }
         }
 
         function handleIframeError(url) {
