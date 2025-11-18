@@ -1125,11 +1125,332 @@
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
+
+        /* Boot Screen Styles */
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .boot-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .boot-logo {
+            font-size: 120px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInLogo 1s ease-in-out 0.5s forwards;
+        }
+
+        @keyframes fadeInLogo {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .boot-progress {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .boot-progress-bar {
+            height: 100%;
+            background: white;
+            width: 0;
+            animation: bootProgress 2s ease-in-out 1s forwards;
+        }
+
+        @keyframes bootProgress {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        /* Login Screen Styles */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea"/><stop offset="100%" style="stop-color:%23764ba2"/></linearGradient></defs><rect width="1920" height="1080" fill="url(%23g)"/></svg>');
+            background-size: cover;
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in;
+        }
+
+        .login-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .login-time {
+            font-size: 72px;
+            font-weight: 200;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .login-date {
+            font-size: 24px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 80px;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+        }
+
+        .login-user {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .login-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .login-username {
+            font-size: 24px;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+        }
+
+        .login-password {
+            width: 300px;
+            padding: 12px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .login-password:focus {
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .login-password::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .login-button {
+            margin-top: 10px;
+            padding: 10px 40px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-button:hover {
+            background: rgba(255,255,255,0.35);
+            transform: scale(1.05);
+        }
+
+        .login-power {
+            position: absolute;
+            bottom: 40px;
+            display: flex;
+            gap: 30px;
+        }
+
+        .power-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .power-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.1);
+        }
+
+        /* Desktop Icons */
+        .desktop-icon {
+            position: absolute;
+            width: 80px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .desktop-icon.selected {
+            background: rgba(0,122,255,0.3);
+        }
+
+        .desktop-icon-img {
+            font-size: 48px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .desktop-icon-name {
+            font-size: 12px;
+            color: white;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            word-break: break-word;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: var(--menu-bg);
+            backdrop-filter: blur(var(--blur-amount));
+            -webkit-backdrop-filter: blur(var(--blur-amount));
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            min-width: 200px;
+            padding: 4px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 15000;
+            display: none;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .context-menu-item:hover {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .context-menu-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .context-menu-item.disabled:hover {
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .context-menu-shortcut {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-left: 20px;
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 4px 0;
+        }
     </style>
 </head>
 <body>
+    <!-- Boot Screen -->
+    <div class="boot-screen" id="boot-screen">
+        <div class="boot-logo"></div>
+        <div class="boot-progress">
+            <div class="boot-progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-screen" id="login-screen">
+        <div class="login-time" id="login-time">12:00</div>
+        <div class="login-date" id="login-date">Monday, November 18</div>
+        <div class="login-user">
+            <div class="login-avatar">👤</div>
+            <div class="login-username">User</div>
+            <input type="password" class="login-password" id="login-password" placeholder="Enter Password" autocomplete="off">
+            <button class="login-button" onclick="performLogin()">Login</button>
+        </div>
+        <div class="login-power">
+            <div class="power-btn" onclick="systemSleep()" title="Sleep">💤</div>
+            <div class="power-btn" onclick="systemRestart()" title="Restart">🔄</div>
+            <div class="power-btn" onclick="systemShutdown()" title="Shut Down">⏻</div>
+        </div>
+    </div>
+
     <!-- Desktop -->
     <div id="desktop"></div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu"></div>
 
     <!-- Menu Bar -->
     <div id="menu-bar">
@@ -2576,10 +2897,515 @@
             }
         });
 
+        // ========================================
+        // PHASE 1: BOOT, LOGIN & DESKTOP ICONS
+        // ========================================
+
+        // Desktop Icons State
+        const desktopIcons = [
+            { id: 1, name: 'Documents', icon: '📄', x: 20, y: 20 },
+            { id: 2, name: 'Projects', icon: '📁', x: 20, y: 140 },
+            { id: 3, name: 'Screenshots', icon: '📸', x: 20, y: 260 }
+        ];
+
+        let selectedIcon = null;
+        let draggingIcon = null;
+
+        // Boot Sequence
+        function startBootSequence() {
+            const bootScreen = document.getElementById('boot-screen');
+            const loginScreen = document.getElementById('login-screen');
+            const logo = document.querySelector('.boot-logo');
+
+            // Set Apple logo
+            logo.textContent = '';
+
+            // Hide menu bar and dock initially
+            document.getElementById('menu-bar').style.opacity = '0';
+            document.getElementById('dock').style.opacity = '0';
+            document.getElementById('desktop').style.opacity = '0';
+
+            // Wait for boot animation to complete (3.5s)
+            setTimeout(() => {
+                bootScreen.classList.add('hidden');
+
+                // Show login screen
+                setTimeout(() => {
+                    loginScreen.classList.add('active');
+                    updateLoginTime();
+
+                    // Auto-focus password field
+                    document.getElementById('login-password').focus();
+                }, 500);
+            }, 3500);
+        }
+
+        // Update Login Time
+        function updateLoginTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+
+            const timeEl = document.getElementById('login-time');
+            const dateEl = document.getElementById('login-date');
+
+            if (timeEl) timeEl.textContent = `${displayHours}:${displayMinutes}`;
+
+            if (dateEl) {
+                const options = { weekday: 'long', month: 'long', day: 'numeric' };
+                dateEl.textContent = now.toLocaleDateString('en-US', options);
+            }
+        }
+
+        // Perform Login
+        function performLogin() {
+            const loginScreen = document.getElementById('login-screen');
+
+            // Fade out login screen
+            loginScreen.classList.remove('active');
+
+            setTimeout(() => {
+                // Show desktop elements
+                document.getElementById('menu-bar').style.opacity = '1';
+                document.getElementById('menu-bar').style.transition = 'opacity 0.5s';
+                document.getElementById('dock').style.opacity = '1';
+                document.getElementById('dock').style.transition = 'opacity 0.5s';
+                document.getElementById('desktop').style.opacity = '1';
+                document.getElementById('desktop').style.transition = 'opacity 0.5s';
+
+                // Render desktop icons
+                renderDesktopIcons();
+
+                // Load saved state
+                loadSystemState();
+
+                // Fix Apple logo
+                const appleLogo = document.querySelector('.apple-logo span');
+                if (appleLogo) appleLogo.textContent = '';
+            }, 500);
+        }
+
+        // Handle Enter key on login
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginPassword = document.getElementById('login-password');
+            if (loginPassword) {
+                loginPassword.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performLogin();
+                    }
+                });
+            }
+        });
+
+        // Desktop Icons Functions
+        function renderDesktopIcons() {
+            const desktop = document.getElementById('desktop');
+
+            // Clear existing icons
+            const existingIcons = desktop.querySelectorAll('.desktop-icon');
+            existingIcons.forEach(icon => icon.remove());
+
+            // Render icons
+            desktopIcons.forEach(iconData => {
+                const icon = createDesktopIcon(iconData);
+                desktop.appendChild(icon);
+            });
+        }
+
+        function createDesktopIcon(data) {
+            const icon = document.createElement('div');
+            icon.className = 'desktop-icon';
+            icon.id = `desktop-icon-${data.id}`;
+            icon.style.left = `${data.x}px`;
+            icon.style.top = `${data.y}px`;
+
+            icon.innerHTML = `
+                <div class="desktop-icon-img">${data.icon}</div>
+                <div class="desktop-icon-name">${data.name}</div>
+            `;
+
+            // Click to select
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectDesktopIcon(data.id);
+            });
+
+            // Double-click to open
+            icon.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                alert(`Opening ${data.name}...`);
+            });
+
+            // Drag to move
+            icon.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // Left click only
+                    startDragIcon(data.id, e);
+                }
+            });
+
+            // Right-click context menu
+            icon.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e.clientX, e.clientY, 'icon', data);
+            });
+
+            return icon;
+        }
+
+        function selectDesktopIcon(id) {
+            // Deselect all
+            document.querySelectorAll('.desktop-icon').forEach(icon => {
+                icon.classList.remove('selected');
+            });
+
+            // Select this one
+            const icon = document.getElementById(`desktop-icon-${id}`);
+            if (icon) {
+                icon.classList.add('selected');
+                selectedIcon = id;
+            }
+        }
+
+        function startDragIcon(id, e) {
+            draggingIcon = id;
+            const icon = document.getElementById(`desktop-icon-${id}`);
+            if (!icon) return;
+
+            const rect = icon.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
+
+            function onMouseMove(e) {
+                if (!draggingIcon) return;
+
+                const desktop = document.getElementById('desktop');
+                const desktopRect = desktop.getBoundingClientRect();
+
+                let x = e.clientX - desktopRect.left - offsetX;
+                let y = e.clientY - desktopRect.top - offsetY;
+
+                // Constrain to desktop bounds
+                x = Math.max(0, Math.min(x, desktopRect.width - 80));
+                y = Math.max(0, Math.min(y, desktopRect.height - 100));
+
+                icon.style.left = `${x}px`;
+                icon.style.top = `${y}px`;
+
+                // Update data
+                const iconData = desktopIcons.find(i => i.id === draggingIcon);
+                if (iconData) {
+                    iconData.x = x;
+                    iconData.y = y;
+                }
+            }
+
+            function onMouseUp() {
+                draggingIcon = null;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                saveSystemState();
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+
+        // Deselect icon when clicking desktop
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('desktop').addEventListener('click', () => {
+                document.querySelectorAll('.desktop-icon').forEach(icon => {
+                    icon.classList.remove('selected');
+                });
+                selectedIcon = null;
+            });
+
+            // Desktop right-click
+            document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e.clientX, e.clientY, 'desktop');
+            });
+        });
+
+        // Context Menu
+        function showContextMenu(x, y, type, data = null) {
+            const menu = document.getElementById('context-menu');
+
+            let menuItems = '';
+
+            if (type === 'desktop') {
+                menuItems = `
+                    <div class="context-menu-item" onclick="createNewFolder()">
+                        New Folder
+                    </div>
+                    <div class="context-menu-divider"></div>
+                    <div class="context-menu-item" onclick="hideContextMenu()">
+                        Get Info<span class="context-menu-shortcut">⌘I</span>
+                    </div>
+                    <div class="context-menu-item" onclick="hideContextMenu()">
+                        Change Desktop Background...
+                    </div>
+                    <div class="context-menu-divider"></div>
+                    <div class="context-menu-item" onclick="hideContextMenu()">
+                        Use Stacks
+                    </div>
+                    <div class="context-menu-item" onclick="hideContextMenu()">
+                        Sort By
+                    </div>
+                `;
+            } else if (type === 'icon') {
+                menuItems = `
+                    <div class="context-menu-item" onclick="hideContextMenu()">
+                        Open
+                    </div>
+                    <div class="context-menu-divider"></div>
+                    <div class="context-menu-item" onclick="hideContextMenu()">
+                        Get Info<span class="context-menu-shortcut">⌘I</span>
+                    </div>
+                    <div class="context-menu-item" onclick="renameIcon(${data.id})">
+                        Rename
+                    </div>
+                    <div class="context-menu-divider"></div>
+                    <div class="context-menu-item" onclick="deleteIcon(${data.id})">
+                        Move to Trash<span class="context-menu-shortcut">⌘⌫</span>
+                    </div>
+                `;
+            }
+
+            menu.innerHTML = menuItems;
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+            menu.classList.add('active');
+
+            // Close on click elsewhere
+            setTimeout(() => {
+                document.addEventListener('click', hideContextMenu, { once: true });
+            }, 100);
+        }
+
+        function hideContextMenu() {
+            const menu = document.getElementById('context-menu');
+            menu.classList.remove('active');
+        }
+
+        function createNewFolder() {
+            const newIcon = {
+                id: desktopIcons.length + 1,
+                name: 'Untitled Folder',
+                icon: '📁',
+                x: 20,
+                y: 20 + desktopIcons.length * 120
+            };
+            desktopIcons.push(newIcon);
+            renderDesktopIcons();
+            saveSystemState();
+            hideContextMenu();
+        }
+
+        function renameIcon(id) {
+            const iconData = desktopIcons.find(i => i.id === id);
+            if (iconData) {
+                const newName = prompt('Enter new name:', iconData.name);
+                if (newName && newName.trim()) {
+                    iconData.name = newName.trim();
+                    renderDesktopIcons();
+                    saveSystemState();
+                }
+            }
+            hideContextMenu();
+        }
+
+        function deleteIcon(id) {
+            const index = desktopIcons.findIndex(i => i.id === id);
+            if (index > -1) {
+                desktopIcons.splice(index, 1);
+                renderDesktopIcons();
+                saveSystemState();
+            }
+            hideContextMenu();
+        }
+
+        // ========================================
+        // ENHANCED WINDOW MANAGEMENT
+        // ========================================
+
+        // Update WindowManager for improved functionality
+        const originalCreateWindow = WindowManager.createWindow;
+        WindowManager.createWindow = function(app) {
+            const windowId = originalCreateWindow.call(this, app);
+            const window = document.getElementById(windowId);
+
+            if (!window) return windowId;
+
+            // Add minimum size constraints
+            window.style.minWidth = '320px';
+            window.style.minHeight = '200px';
+
+            // Double-click titlebar to maximize
+            const titlebar = window.querySelector('.window-titlebar');
+            titlebar.addEventListener('dblclick', (e) => {
+                if (!e.target.classList.contains('traffic-light')) {
+                    WindowManager.toggleMaximize(windowId);
+                }
+            });
+
+            // Store original position/size for restore
+            if (!window.dataset.originalSize) {
+                window.dataset.originalSize = JSON.stringify({
+                    width: window.style.width,
+                    height: window.style.height,
+                    left: window.style.left,
+                    top: window.style.top
+                });
+            }
+
+            return windowId;
+        };
+
+        // Improved minimize with dock animation
+        const originalMinimize = WindowManager.minimizeWindow;
+        WindowManager.minimizeWindow = function(windowId) {
+            const window = document.getElementById(windowId);
+            if (!window) return;
+
+            // Get dock icon position
+            const windowData = state.windows.find(w => w.id === windowId);
+            if (!windowData) return;
+
+            const dockItem = document.querySelector(`.dock-item[data-app="${windowData.appId}"]`);
+
+            if (dockItem) {
+                const windowRect = window.getBoundingClientRect();
+                const dockRect = dockItem.getBoundingClientRect();
+
+                // Calculate transform
+                const scaleX = dockRect.width / windowRect.width;
+                const scaleY = dockRect.height / windowRect.height;
+                const translateX = dockRect.left - windowRect.left;
+                const translateY = dockRect.top - windowRect.top;
+
+                // Animate to dock
+                window.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                window.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY})`;
+                window.style.opacity = '0';
+
+                setTimeout(() => {
+                    window.style.transition = '';
+                    window.style.transform = '';
+                    window.style.opacity = '';
+                    window.classList.add('minimized');
+
+                    // Add minimized indicator to dock
+                    dockItem.classList.add('has-minimized');
+                }, 400);
+            } else {
+                originalMinimize.call(this, windowId);
+            }
+        };
+
+        // Restore minimized window
+        WindowManager.restoreWindow = function(windowId) {
+            const window = document.getElementById(windowId);
+            if (!window) return;
+
+            window.classList.remove('minimized');
+            this.setActiveWindow(windowId);
+
+            const windowData = state.windows.find(w => w.id === windowId);
+            if (windowData) {
+                const dockItem = document.querySelector(`.dock-item[data-app="${windowData.appId}"]`);
+                if (dockItem) {
+                    dockItem.classList.remove('has-minimized');
+                }
+            }
+        };
+
+        // Update dock click to restore minimized windows
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.dock-item[data-app]').forEach(item => {
+                const originalOnClick = item.getAttribute('onclick');
+                item.removeAttribute('onclick');
+
+                item.addEventListener('click', () => {
+                    const appId = item.getAttribute('data-app');
+                    const existingWindow = state.windows.find(w => w.appId === appId);
+
+                    if (existingWindow) {
+                        if (existingWindow.element.classList.contains('minimized')) {
+                            WindowManager.restoreWindow(existingWindow.id);
+                        } else {
+                            WindowManager.setActiveWindow(existingWindow.id);
+                        }
+                    } else {
+                        launchApp(appId);
+                    }
+                });
+            });
+        });
+
+        // ========================================
+        // LOCALSTORAGE PERSISTENCE
+        // ========================================
+
+        function saveSystemState() {
+            const stateToSave = {
+                desktopIcons: desktopIcons,
+                theme: state.theme,
+                notes: state.notes,
+                timestamp: Date.now()
+            };
+
+            try {
+                localStorage.setItem('macos-simulator-state', JSON.stringify(stateToSave));
+            } catch (e) {
+                console.warn('Failed to save state:', e);
+            }
+        }
+
+        function loadSystemState() {
+            try {
+                const saved = localStorage.getItem('macos-simulator-state');
+                if (saved) {
+                    const data = JSON.parse(saved);
+
+                    // Restore desktop icons
+                    if (data.desktopIcons) {
+                        desktopIcons.length = 0;
+                        desktopIcons.push(...data.desktopIcons);
+                        renderDesktopIcons();
+                    }
+
+                    // Restore theme
+                    if (data.theme) {
+                        state.theme = data.theme;
+                        document.body.setAttribute('data-theme', data.theme);
+                    }
+
+                    // Restore notes
+                    if (data.notes) {
+                        state.notes = data.notes;
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to load state:', e);
+            }
+        }
+
+        // Save state periodically
+        setInterval(saveSystemState, 30000); // Every 30 seconds
+
+        // Save on unload
+        window.addEventListener('beforeunload', saveSystemState);
+
         // Initialize
-        console.log('macOS Simulator loaded successfully!');
-        console.log('Click on dock icons to launch applications');
-        console.log('Press Cmd+Space (or Ctrl+Space) to open Spotlight');
+        console.log('macOS Simulator v2.0 loaded successfully!');
+        console.log('Starting boot sequence...');
+
+        // Start boot sequence on load
+        window.addEventListener('load', () => {
+            startBootSequence();
+        });
     </script>
 </body>
 </html>
