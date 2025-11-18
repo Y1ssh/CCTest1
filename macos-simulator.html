@@ -1,0 +1,2585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>macOS Simulator</title>
+    <style>
+        /* CSS Variables */
+        :root {
+            --macos-blue: #007AFF;
+            --menu-bar-height: 24px;
+            --dock-height: 70px;
+            --window-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            --border-radius: 10px;
+            --transition-speed: 0.3s;
+            --blur-amount: 20px;
+
+            /* Light mode colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --border-color: #d2d2d7;
+            --menu-bg: rgba(255, 255, 255, 0.8);
+            --dock-bg: rgba(255, 255, 255, 0.3);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1a6;
+            --border-color: #3d3d3d;
+            --menu-bg: rgba(30, 30, 30, 0.8);
+            --dock-bg: rgba(30, 30, 30, 0.3);
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+        }
+
+        /* Desktop */
+        #desktop {
+            position: absolute;
+            top: var(--menu-bar-height);
+            left: 0;
+            right: 0;
+            bottom: var(--dock-height);
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea"/><stop offset="100%" style="stop-color:%23764ba2"/></linearGradient></defs><rect width="1920" height="1080" fill="url(%23g)"/></svg>');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Menu Bar */
+        #menu-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--menu-bar-height);
+            background: var(--menu-bg);
+            backdrop-filter: blur(var(--blur-amount));
+            -webkit-backdrop-filter: blur(var(--blur-amount));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 10000;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .menu-left, .menu-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-item {
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+            position: relative;
+            transition: background 0.15s;
+        }
+
+        .menu-item:hover {
+            background: rgba(0,0,0,0.1);
+        }
+
+        .apple-logo {
+            font-size: 16px;
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--menu-bg);
+            backdrop-filter: blur(var(--blur-amount));
+            -webkit-backdrop-filter: blur(var(--blur-amount));
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            min-width: 200px;
+            padding: 4px;
+            margin-top: 4px;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 10001;
+        }
+
+        .menu-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.1s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 4px 0;
+        }
+
+        #clock {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Dock */
+        #dock {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dock-bg);
+            backdrop-filter: blur(var(--blur-amount));
+            -webkit-backdrop-filter: blur(var(--blur-amount));
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            z-index: 9999;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+        }
+
+        .dock-item {
+            width: 50px;
+            height: 50px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border-radius: 10px;
+        }
+
+        .dock-item:hover {
+            transform: translateY(-10px) scale(1.2);
+        }
+
+        .dock-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--text-primary);
+            border-radius: 50%;
+        }
+
+        .dock-divider {
+            width: 1px;
+            height: 50px;
+            background: rgba(255,255,255,0.3);
+            margin: 0 5px;
+        }
+
+        /* Windows Container */
+        #windows-container {
+            position: absolute;
+            top: var(--menu-bar-height);
+            left: 0;
+            right: 0;
+            bottom: var(--dock-height);
+            pointer-events: none;
+        }
+
+        /* Window */
+        .window {
+            position: absolute;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--window-shadow);
+            overflow: hidden;
+            pointer-events: all;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window.minimized {
+            display: none;
+        }
+
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0;
+        }
+
+        .window-titlebar {
+            height: 40px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .traffic-lights {
+            display: flex;
+            gap: 8px;
+            margin-right: auto;
+        }
+
+        .traffic-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: filter 0.15s;
+        }
+
+        .traffic-light:hover {
+            filter: brightness(1.2);
+        }
+
+        .traffic-light.close { background: #ff5f57; }
+        .traffic-light.minimize { background: #ffbd2e; }
+        .traffic-light.maximize { background: #28c840; }
+
+        .traffic-light:hover::before {
+            position: absolute;
+            font-size: 8px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(0,0,0,0.5);
+        }
+
+        .traffic-light.close:hover::before { content: '×'; font-size: 12px; }
+        .traffic-light.minimize:hover::before { content: '−'; }
+        .traffic-light.maximize:hover::before { content: '+'; }
+
+        .window-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow: auto;
+            background: var(--bg-primary);
+        }
+
+        .window-toolbar {
+            height: 48px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 10px;
+        }
+
+        /* Resize handles */
+        .resize-handle {
+            position: absolute;
+            z-index: 10;
+        }
+
+        .resize-n { top: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; }
+        .resize-s { bottom: 0; left: 0; right: 0; height: 5px; cursor: ns-resize; }
+        .resize-e { top: 0; right: 0; bottom: 0; width: 5px; cursor: ew-resize; }
+        .resize-w { top: 0; left: 0; bottom: 0; width: 5px; cursor: ew-resize; }
+        .resize-ne { top: 0; right: 0; width: 10px; height: 10px; cursor: nesw-resize; }
+        .resize-nw { top: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }
+        .resize-se { bottom: 0; right: 0; width: 10px; height: 10px; cursor: nwse-resize; }
+        .resize-sw { bottom: 0; left: 0; width: 10px; height: 10px; cursor: nesw-resize; }
+
+        /* Finder Styles */
+        .finder-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .finder-sidebar {
+            width: 180px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            padding: 0 8px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-item {
+            padding: 5px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .sidebar-item.active {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .finder-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .finder-items {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            align-content: start;
+            overflow-y: auto;
+        }
+
+        .finder-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+
+        .finder-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .finder-item.selected {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .finder-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--macos-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .finder-name {
+            font-size: 12px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .finder-statusbar {
+            height: 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Safari Styles */
+        .safari-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .safari-tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 8px 0 8px;
+            gap: 2px;
+        }
+
+        .safari-tab {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 6px 30px 6px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            min-width: 120px;
+            max-width: 200px;
+            position: relative;
+            transition: background 0.15s;
+        }
+
+        .safari-tab:not(.active) {
+            background: var(--bg-secondary);
+        }
+
+        .safari-tab:hover {
+            background: var(--bg-primary);
+        }
+
+        .safari-tab .close-tab {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .safari-tab:hover .close-tab {
+            opacity: 1;
+        }
+
+        .safari-tab .close-tab:hover {
+            background: rgba(0,0,0,0.2);
+        }
+
+        .new-tab-btn {
+            padding: 6px 12px;
+            cursor: pointer;
+            background: transparent;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .new-tab-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .safari-navigation {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            gap: 8px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: background 0.15s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .address-bar {
+            flex: 1;
+            height: 28px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0 12px;
+            background: var(--bg-primary);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .address-bar:focus {
+            border-color: var(--macos-blue);
+        }
+
+        .safari-content {
+            flex: 1;
+            background: white;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Terminal Styles */
+        .terminal-container {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .terminal-line {
+            margin: 2px 0;
+            line-height: 1.5;
+        }
+
+        .terminal-prompt {
+            color: #00ff00;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: inherit;
+            caret-color: #00ff00;
+        }
+
+        /* Calculator Styles */
+        .calculator-container {
+            background: var(--bg-primary);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .calc-display {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: right;
+            font-size: 48px;
+            font-weight: 300;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-break: break-all;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-btn {
+            height: 60px;
+            border: none;
+            border-radius: 8px;
+            font-size: 24px;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.15s;
+        }
+
+        .calc-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .calc-btn:active {
+            transform: scale(0.95);
+        }
+
+        .calc-btn.operator {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .calc-btn.function {
+            background: #ff9500;
+            color: white;
+        }
+
+        /* Notes Styles */
+        .notes-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .notes-sidebar {
+            width: 200px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .notes-list {
+            padding: 10px;
+        }
+
+        .note-item {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.15s;
+        }
+
+        .note-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .note-item.active {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .note-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .note-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .note-item.active .note-preview {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .notes-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-content {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: none;
+            font-family: inherit;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Settings Styles */
+        .settings-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .settings-sidebar {
+            width: 200px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 10px;
+        }
+
+        .settings-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 5px;
+            transition: background 0.15s;
+        }
+
+        .settings-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .settings-item.active {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+        }
+
+        .settings-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .setting-label {
+            font-size: 14px;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: var(--border-color);
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--macos-blue);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        /* Spotlight Styles */
+        .spotlight-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 20vh;
+            z-index: 20000;
+        }
+
+        .spotlight-overlay.active {
+            display: flex;
+        }
+
+        .spotlight-search {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            width: 600px;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        .spotlight-input {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            outline: none;
+            font-size: 32px;
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .spotlight-results {
+            max-height: 400px;
+            overflow-y: auto;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .spotlight-result {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+
+        .spotlight-result:hover,
+        .spotlight-result.selected {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .spotlight-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--macos-blue);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .spotlight-result:hover .spotlight-icon,
+        .spotlight-result.selected .spotlight-icon {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .calendar-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            flex: 1;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 10px;
+        }
+
+        .calendar-day {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-height: 80px;
+        }
+
+        .calendar-day:hover {
+            background: rgba(0,122,255,0.1);
+            border-color: var(--macos-blue);
+        }
+
+        .calendar-day.today {
+            background: var(--macos-blue);
+            color: white;
+            border-color: var(--macos-blue);
+        }
+
+        .calendar-day-number {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        /* Mail Styles */
+        .mail-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .mail-sidebar {
+            width: 180px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 10px;
+        }
+
+        .mail-list {
+            width: 300px;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .mail-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .mail-item:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .mail-item.active {
+            background: var(--macos-blue);
+            color: white;
+        }
+
+        .mail-sender {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .mail-subject {
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .mail-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .mail-item.active .mail-preview {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .mail-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .mail-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mail-header-subject {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .mail-header-from {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .mail-body {
+            line-height: 1.6;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .btn-primary {
+            background: var(--macos-blue);
+            color: white;
+            border-color: var(--macos-blue);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Utility Classes */
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .bounce {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Desktop -->
+    <div id="desktop"></div>
+
+    <!-- Menu Bar -->
+    <div id="menu-bar">
+        <div class="menu-left">
+            <div class="menu-item apple-logo">
+                <span></span>
+                <div class="menu-dropdown" id="apple-menu">
+                    <div class="dropdown-item" onclick="showAboutMac()">About This Mac</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" onclick="launchApp('settings')">System Settings...</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" onclick="systemSleep()">Sleep</div>
+                    <div class="dropdown-item" onclick="systemRestart()">Restart...</div>
+                    <div class="dropdown-item" onclick="systemShutdown()">Shut Down...</div>
+                </div>
+            </div>
+            <div class="menu-item" id="app-menu-name">Finder</div>
+        </div>
+        <div class="menu-right">
+            <div class="menu-item" onclick="toggleSpotlight()">🔍</div>
+            <div class="menu-item">🔋</div>
+            <div class="menu-item">📶</div>
+            <div class="menu-item" id="clock">12:00 PM</div>
+        </div>
+    </div>
+
+    <!-- Windows Container -->
+    <div id="windows-container"></div>
+
+    <!-- Dock -->
+    <div id="dock">
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%2300a2ff%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📁</text></svg>')" onclick="launchApp('finder')" data-app="finder"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22safari%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2300c0ff%22/><stop offset=%22100%25%22 stop-color=%22%230080ff%22/></linearGradient></defs><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22url(%23safari)%22/><text x=%2250%22 y=%2270%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22>🧭</text></svg>')" onclick="launchApp('safari')" data-app="safari"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231e1e1e%22 rx=%2215%22/><text x=%2250%22 y=%2265%22 font-size=%2255%22 text-anchor=%22middle%22 fill=%22%2300ff00%22>&gt;_</text></svg>')" onclick="launchApp('terminal')" data-app="terminal"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff9500%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>Σ</text></svg>')" onclick="launchApp('calculator')" data-app="calculator"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ffd60a%22 rx=%2215%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📝</text></svg>')" onclick="launchApp('notes')" data-app="notes"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff3b30%22 rx=%2215%22/><text x=%2250%22 y=%2275%22 font-size=%2270%22 text-anchor=%22middle%22 fill=%22white%22>📅</text></svg>')" onclick="launchApp('calendar')" data-app="calendar"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22mail%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22><stop offset=%220%25%22 stop-color=%22%2354b6f8%22/><stop offset=%22100%25%22 stop-color=%22%231a7ec8%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 fill=%22url(%23mail)%22 rx=%2220%22/><text x=%2250%22 y=%2275%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>✉️</text></svg>')" onclick="launchApp('mail')" data-app="mail"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23a0a0a0%22 rx=%2220%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>⚙️</text></svg>')" onclick="launchApp('settings')" data-app="settings"></div>
+
+        <div class="dock-divider"></div>
+
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23666%22 rx=%2215%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>📥</text></svg>')"></div>
+        <div class="dock-item" style="background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23888%22 rx=%2215%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22>🗑️</text></svg>')"></div>
+    </div>
+
+    <!-- Spotlight Overlay -->
+    <div class="spotlight-overlay" id="spotlight">
+        <div class="spotlight-search">
+            <input type="text" class="spotlight-input" id="spotlight-input" placeholder="Spotlight Search">
+            <div class="spotlight-results" id="spotlight-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        const state = {
+            windows: [],
+            activeWindow: null,
+            nextZIndex: 100,
+            theme: 'light',
+            fileSystem: {
+                '/': {
+                    'Desktop': {
+                        type: 'folder',
+                        contents: {
+                            'Project Files': { type: 'folder', contents: {} },
+                            'Screenshot.png': { type: 'file' }
+                        }
+                    },
+                    'Documents': {
+                        type: 'folder',
+                        contents: {
+                            'Resume.pdf': { type: 'file' },
+                            'Work': { type: 'folder', contents: {} }
+                        }
+                    },
+                    'Downloads': {
+                        type: 'folder',
+                        contents: {
+                            'installer.dmg': { type: 'file' },
+                            'document.pdf': { type: 'file' }
+                        }
+                    },
+                    'Applications': {
+                        type: 'folder',
+                        contents: {
+                            'Safari': { type: 'app' },
+                            'Terminal': { type: 'app' },
+                            'Calculator': { type: 'app' },
+                            'Notes': { type: 'app' }
+                        }
+                    }
+                }
+            },
+            terminal: {
+                currentDir: '~',
+                history: [],
+                historyIndex: -1
+            },
+            notes: [
+                { id: 1, title: 'Welcome to Notes', content: 'This is your first note. Start typing to edit!' },
+                { id: 2, title: 'Shopping List', content: '• Milk\n• Eggs\n• Bread\n• Coffee' },
+                { id: 3, title: 'Meeting Notes', content: 'Team meeting at 2 PM\nDiscuss project roadmap\nReview Q4 goals' },
+                { id: 4, title: 'Ideas', content: 'Great ideas start here...' }
+            ],
+            activeNote: 1,
+            calculator: {
+                display: '0',
+                previousValue: null,
+                operation: null,
+                waitingForOperand: false
+            },
+            safari: {
+                tabs: [
+                    { id: 1, title: 'Apple', url: 'https://www.apple.com', active: true }
+                ],
+                history: [],
+                nextTabId: 2
+            },
+            mail: {
+                activeFolder: 'inbox',
+                activeMail: null,
+                folders: {
+                    inbox: [
+                        { id: 1, sender: 'Apple', subject: 'Welcome to Mail', preview: 'Thank you for using Mail...', content: 'Welcome to Mail! This is a sample email to help you get started with the Mail application.' },
+                        { id: 2, sender: 'System', subject: 'System Notification', preview: 'Your system is up to date', content: 'Your macOS system is running the latest version. All security updates have been applied.' },
+                        { id: 3, sender: 'Newsletter', subject: 'Weekly Updates', preview: 'Check out what\'s new this week', content: 'Here are the latest updates and news from this week. Stay informed about the latest developments.' }
+                    ],
+                    sent: [],
+                    drafts: [],
+                    trash: []
+                }
+            }
+        };
+
+        // Window Management
+        class WindowManager {
+            static createWindow(app) {
+                const windowId = 'window-' + Date.now();
+                const window = document.createElement('div');
+                window.className = 'window fade-in';
+                window.id = windowId;
+                window.style.left = (100 + state.windows.length * 30) + 'px';
+                window.style.top = (50 + state.windows.length * 30) + 'px';
+                window.style.width = app.width || '800px';
+                window.style.height = app.height || '600px';
+                window.style.zIndex = state.nextZIndex++;
+
+                window.innerHTML = `
+                    <div class="window-titlebar">
+                        <div class="traffic-lights">
+                            <div class="traffic-light close" onclick="WindowManager.closeWindow('${windowId}')"></div>
+                            <div class="traffic-light minimize" onclick="WindowManager.minimizeWindow('${windowId}')"></div>
+                            <div class="traffic-light maximize" onclick="WindowManager.toggleMaximize('${windowId}')"></div>
+                        </div>
+                        <div class="window-title">${app.name}</div>
+                    </div>
+                    ${app.toolbar ? `<div class="window-toolbar">${app.toolbar}</div>` : ''}
+                    <div class="window-content" id="${windowId}-content"></div>
+                    <div class="resize-handle resize-n"></div>
+                    <div class="resize-handle resize-s"></div>
+                    <div class="resize-handle resize-e"></div>
+                    <div class="resize-handle resize-w"></div>
+                    <div class="resize-handle resize-ne"></div>
+                    <div class="resize-handle resize-nw"></div>
+                    <div class="resize-handle resize-se"></div>
+                    <div class="resize-handle resize-sw"></div>
+                `;
+
+                document.getElementById('windows-container').appendChild(window);
+
+                // Render app content
+                const content = document.getElementById(`${windowId}-content`);
+                app.render(content);
+
+                // Add drag functionality
+                this.makeDraggable(window);
+                this.makeResizable(window);
+
+                // Add to state
+                state.windows.push({
+                    id: windowId,
+                    appId: app.id,
+                    element: window
+                });
+
+                this.setActiveWindow(windowId);
+                this.updateDock();
+
+                // Focus window on click
+                window.addEventListener('mousedown', () => {
+                    this.setActiveWindow(windowId);
+                });
+
+                return windowId;
+            }
+
+            static closeWindow(windowId) {
+                const window = document.getElementById(windowId);
+                if (window) {
+                    window.remove();
+                    state.windows = state.windows.filter(w => w.id !== windowId);
+                    this.updateDock();
+                }
+            }
+
+            static minimizeWindow(windowId) {
+                const window = document.getElementById(windowId);
+                if (window) {
+                    window.classList.add('minimized');
+                }
+            }
+
+            static toggleMaximize(windowId) {
+                const window = document.getElementById(windowId);
+                if (window) {
+                    window.classList.toggle('maximized');
+                }
+            }
+
+            static setActiveWindow(windowId) {
+                state.windows.forEach(w => {
+                    if (w.id === windowId) {
+                        w.element.style.zIndex = state.nextZIndex++;
+                        state.activeWindow = windowId;
+                    }
+                });
+            }
+
+            static makeDraggable(window) {
+                const titlebar = window.querySelector('.window-titlebar');
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
+
+                titlebar.addEventListener('mousedown', (e) => {
+                    if (e.target.classList.contains('traffic-light')) return;
+                    if (window.classList.contains('maximized')) return;
+
+                    isDragging = true;
+                    initialX = e.clientX - window.offsetLeft;
+                    initialY = e.clientY - window.offsetTop;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        window.style.left = currentX + 'px';
+                        window.style.top = currentY + 'px';
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+            }
+
+            static makeResizable(window) {
+                const handles = window.querySelectorAll('.resize-handle');
+                handles.forEach(handle => {
+                    let isResizing = false;
+                    let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+                    handle.addEventListener('mousedown', (e) => {
+                        if (window.classList.contains('maximized')) return;
+                        isResizing = true;
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        startWidth = parseInt(window.style.width);
+                        startHeight = parseInt(window.style.height);
+                        startLeft = window.offsetLeft;
+                        startTop = window.offsetTop;
+                        e.stopPropagation();
+                    });
+
+                    document.addEventListener('mousemove', (e) => {
+                        if (!isResizing) return;
+                        e.preventDefault();
+
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+
+                        if (handle.classList.contains('resize-e')) {
+                            window.style.width = (startWidth + dx) + 'px';
+                        } else if (handle.classList.contains('resize-s')) {
+                            window.style.height = (startHeight + dy) + 'px';
+                        } else if (handle.classList.contains('resize-se')) {
+                            window.style.width = (startWidth + dx) + 'px';
+                            window.style.height = (startHeight + dy) + 'px';
+                        } else if (handle.classList.contains('resize-w')) {
+                            window.style.width = (startWidth - dx) + 'px';
+                            window.style.left = (startLeft + dx) + 'px';
+                        } else if (handle.classList.contains('resize-n')) {
+                            window.style.height = (startHeight - dy) + 'px';
+                            window.style.top = (startTop + dy) + 'px';
+                        } else if (handle.classList.contains('resize-nw')) {
+                            window.style.width = (startWidth - dx) + 'px';
+                            window.style.height = (startHeight - dy) + 'px';
+                            window.style.left = (startLeft + dx) + 'px';
+                            window.style.top = (startTop + dy) + 'px';
+                        } else if (handle.classList.contains('resize-ne')) {
+                            window.style.width = (startWidth + dx) + 'px';
+                            window.style.height = (startHeight - dy) + 'px';
+                            window.style.top = (startTop + dy) + 'px';
+                        } else if (handle.classList.contains('resize-sw')) {
+                            window.style.width = (startWidth - dx) + 'px';
+                            window.style.height = (startHeight + dy) + 'px';
+                            window.style.left = (startLeft + dx) + 'px';
+                        }
+                    });
+
+                    document.addEventListener('mouseup', () => {
+                        isResizing = false;
+                    });
+                });
+            }
+
+            static updateDock() {
+                document.querySelectorAll('.dock-item[data-app]').forEach(item => {
+                    const appId = item.getAttribute('data-app');
+                    const hasWindow = state.windows.some(w => w.appId === appId);
+                    if (hasWindow) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        // Applications
+        const apps = {
+            finder: {
+                id: 'finder',
+                name: 'Finder',
+                width: '900px',
+                height: '600px',
+                toolbar: `
+                    <button class="btn" onclick="finderBack()">◀</button>
+                    <button class="btn" onclick="finderForward()">▶</button>
+                    <span style="flex: 1; padding: 0 15px;" id="finder-path">Desktop</span>
+                    <button class="btn">⊞</button>
+                    <button class="btn">⊟</button>
+                    <button class="btn">≣</button>
+                `,
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="finder-container">
+                            <div class="finder-sidebar">
+                                <div class="sidebar-section">
+                                    <div class="sidebar-title">Favorites</div>
+                                    <div class="sidebar-item active" onclick="finderNavigate('Desktop')">📱 Desktop</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Documents')">📄 Documents</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Downloads')">📥 Downloads</div>
+                                    <div class="sidebar-item" onclick="finderNavigate('Applications')">📦 Applications</div>
+                                </div>
+                            </div>
+                            <div class="finder-main">
+                                <div class="finder-items" id="finder-items"></div>
+                                <div class="finder-statusbar" id="finder-status">0 items</div>
+                            </div>
+                        </div>
+                    `;
+                    finderNavigate('Desktop');
+                }
+            },
+            safari: {
+                id: 'safari',
+                name: 'Safari',
+                width: '1000px',
+                height: '700px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="safari-container">
+                            <div class="safari-tabs" id="safari-tabs"></div>
+                            <div class="safari-navigation">
+                                <button class="nav-btn" onclick="safariBack()">◀</button>
+                                <button class="nav-btn" onclick="safariForward()">▶</button>
+                                <button class="nav-btn" onclick="safariRefresh()">↻</button>
+                                <input type="text" class="address-bar" id="address-bar" placeholder="Search or enter website">
+                            </div>
+                            <div class="safari-content" id="safari-content"></div>
+                        </div>
+                    `;
+                    renderSafariTabs();
+                    renderSafariContent();
+
+                    document.getElementById('address-bar').addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            safariNavigate(e.target.value);
+                        }
+                    });
+                }
+            },
+            terminal: {
+                id: 'terminal',
+                name: 'Terminal',
+                width: '700px',
+                height: '500px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="terminal-container" id="terminal-output">
+                            <div class="terminal-line">Last login: ${new Date().toLocaleString()} on ttys000</div>
+                            <div class="terminal-line">macOS Simulator Terminal v1.0</div>
+                            <div class="terminal-line">Type 'help' for available commands.</div>
+                            <div class="terminal-line"></div>
+                            <div class="terminal-input-line">
+                                <span class="terminal-prompt">user@macos ~ % </span>
+                                <input type="text" class="terminal-input" id="terminal-input" autofocus>
+                            </div>
+                        </div>
+                    `;
+
+                    const input = document.getElementById('terminal-input');
+                    input.addEventListener('keydown', handleTerminalInput);
+                    input.focus();
+                }
+            },
+            calculator: {
+                id: 'calculator',
+                name: 'Calculator',
+                width: '320px',
+                height: '500px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="calculator-container">
+                            <div class="calc-display" id="calc-display">0</div>
+                            <div class="calc-buttons">
+                                <button class="calc-btn function" onclick="calcClear()">AC</button>
+                                <button class="calc-btn function" onclick="calcToggleSign()">±</button>
+                                <button class="calc-btn function" onclick="calcPercent()">%</button>
+                                <button class="calc-btn operator" onclick="calcOperation('÷')">÷</button>
+
+                                <button class="calc-btn" onclick="calcNumber('7')">7</button>
+                                <button class="calc-btn" onclick="calcNumber('8')">8</button>
+                                <button class="calc-btn" onclick="calcNumber('9')">9</button>
+                                <button class="calc-btn operator" onclick="calcOperation('×')">×</button>
+
+                                <button class="calc-btn" onclick="calcNumber('4')">4</button>
+                                <button class="calc-btn" onclick="calcNumber('5')">5</button>
+                                <button class="calc-btn" onclick="calcNumber('6')">6</button>
+                                <button class="calc-btn operator" onclick="calcOperation('−')">−</button>
+
+                                <button class="calc-btn" onclick="calcNumber('1')">1</button>
+                                <button class="calc-btn" onclick="calcNumber('2')">2</button>
+                                <button class="calc-btn" onclick="calcNumber('3')">3</button>
+                                <button class="calc-btn operator" onclick="calcOperation('+')">+</button>
+
+                                <button class="calc-btn" onclick="calcNumber('0')" style="grid-column: span 2;">0</button>
+                                <button class="calc-btn" onclick="calcDecimal()">.</button>
+                                <button class="calc-btn operator" onclick="calcEquals()">=</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            notes: {
+                id: 'notes',
+                name: 'Notes',
+                width: '800px',
+                height: '600px',
+                toolbar: `
+                    <button class="btn" onclick="createNewNote()">+ New Note</button>
+                    <button class="btn" onclick="deleteNote()">🗑️ Delete</button>
+                `,
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="notes-container">
+                            <div class="notes-sidebar">
+                                <div class="notes-list" id="notes-list"></div>
+                            </div>
+                            <div class="notes-editor">
+                                <textarea class="notes-content" id="notes-content" placeholder="Start typing..."></textarea>
+                            </div>
+                        </div>
+                    `;
+                    renderNotesList();
+                    loadNote(state.activeNote);
+
+                    document.getElementById('notes-content').addEventListener('input', (e) => {
+                        saveCurrentNote(e.target.value);
+                    });
+                }
+            },
+            settings: {
+                id: 'settings',
+                name: 'System Settings',
+                width: '800px',
+                height: '600px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="settings-container">
+                            <div class="settings-sidebar">
+                                <div class="settings-item active" onclick="showSettings('appearance')">🎨 Appearance</div>
+                                <div class="settings-item" onclick="showSettings('desktop')">🖥️ Desktop</div>
+                                <div class="settings-item" onclick="showSettings('displays')">📺 Displays</div>
+                                <div class="settings-item" onclick="showSettings('sound')">🔊 Sound</div>
+                                <div class="settings-item" onclick="showSettings('network')">📶 Network</div>
+                            </div>
+                            <div class="settings-content" id="settings-content"></div>
+                        </div>
+                    `;
+                    showSettings('appearance');
+                }
+            },
+            calendar: {
+                id: 'calendar',
+                name: 'Calendar',
+                width: '900px',
+                height: '650px',
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="calendar-container">
+                            <div class="calendar-header">
+                                <div class="calendar-title" id="calendar-title"></div>
+                                <div class="calendar-nav">
+                                    <button class="btn" onclick="calendarPrevMonth()">◀</button>
+                                    <button class="btn" onclick="calendarToday()">Today</button>
+                                    <button class="btn" onclick="calendarNextMonth()">▶</button>
+                                </div>
+                            </div>
+                            <div class="calendar-grid" id="calendar-grid"></div>
+                        </div>
+                    `;
+                    renderCalendar();
+                }
+            },
+            mail: {
+                id: 'mail',
+                name: 'Mail',
+                width: '1000px',
+                height: '700px',
+                toolbar: `
+                    <button class="btn btn-primary" onclick="composeMail()">✉️ New Message</button>
+                `,
+                render: (container) => {
+                    container.innerHTML = `
+                        <div class="mail-container">
+                            <div class="mail-sidebar">
+                                <div class="sidebar-item active" onclick="mailSelectFolder('inbox')">📥 Inbox</div>
+                                <div class="sidebar-item" onclick="mailSelectFolder('sent')">📤 Sent</div>
+                                <div class="sidebar-item" onclick="mailSelectFolder('drafts')">📝 Drafts</div>
+                                <div class="sidebar-item" onclick="mailSelectFolder('trash')">🗑️ Trash</div>
+                            </div>
+                            <div class="mail-list" id="mail-list"></div>
+                            <div class="mail-content" id="mail-content">
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">
+                                    Select an email to read
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    renderMailList();
+                }
+            }
+        };
+
+        // App Launch
+        function launchApp(appId) {
+            // Check if app is already open
+            const existingWindow = state.windows.find(w => w.appId === appId);
+            if (existingWindow) {
+                WindowManager.setActiveWindow(existingWindow.id);
+                if (existingWindow.element.classList.contains('minimized')) {
+                    existingWindow.element.classList.remove('minimized');
+                }
+                return;
+            }
+
+            const app = apps[appId];
+            if (app) {
+                // Bounce animation
+                const dockItem = document.querySelector(`.dock-item[data-app="${appId}"]`);
+                if (dockItem) {
+                    dockItem.classList.add('bounce');
+                    setTimeout(() => dockItem.classList.remove('bounce'), 600);
+                }
+
+                WindowManager.createWindow(app);
+                document.getElementById('app-menu-name').textContent = app.name;
+            }
+        }
+
+        // Finder Functions
+        let finderCurrentPath = 'Desktop';
+        let finderHistory = ['Desktop'];
+        let finderHistoryIndex = 0;
+
+        function finderNavigate(path) {
+            finderCurrentPath = path;
+            finderHistory = finderHistory.slice(0, finderHistoryIndex + 1);
+            finderHistory.push(path);
+            finderHistoryIndex = finderHistory.length - 1;
+
+            document.getElementById('finder-path').textContent = path;
+            const items = state.fileSystem['/'][path]?.contents || {};
+            const itemsContainer = document.getElementById('finder-items');
+
+            itemsContainer.innerHTML = '';
+            let count = 0;
+
+            for (const [name, item] of Object.entries(items)) {
+                count++;
+                const icon = item.type === 'folder' ? '📁' : item.type === 'app' ? '📦' : '📄';
+                const div = document.createElement('div');
+                div.className = 'finder-item';
+                div.innerHTML = `
+                    <div class="finder-icon">${icon}</div>
+                    <div class="finder-name">${name}</div>
+                `;
+                div.addEventListener('dblclick', () => {
+                    if (item.type === 'folder') {
+                        finderNavigate(name);
+                    }
+                });
+                itemsContainer.appendChild(div);
+            }
+
+            document.getElementById('finder-status').textContent = `${count} items`;
+
+            // Update sidebar active state
+            document.querySelectorAll('.finder-sidebar .sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(path)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function finderBack() {
+            if (finderHistoryIndex > 0) {
+                finderHistoryIndex--;
+                finderNavigate(finderHistory[finderHistoryIndex]);
+            }
+        }
+
+        function finderForward() {
+            if (finderHistoryIndex < finderHistory.length - 1) {
+                finderHistoryIndex++;
+                finderNavigate(finderHistory[finderHistoryIndex]);
+            }
+        }
+
+        // Safari Functions
+        function renderSafariTabs() {
+            const tabsContainer = document.getElementById('safari-tabs');
+            tabsContainer.innerHTML = '';
+
+            state.safari.tabs.forEach(tab => {
+                const tabEl = document.createElement('div');
+                tabEl.className = 'safari-tab' + (tab.active ? ' active' : '');
+                tabEl.innerHTML = `
+                    ${tab.title}
+                    <span class="close-tab" onclick="closeSafariTab(${tab.id}, event)">×</span>
+                `;
+                tabEl.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('close-tab')) {
+                        activateSafariTab(tab.id);
+                    }
+                });
+                tabsContainer.appendChild(tabEl);
+            });
+
+            const newTabBtn = document.createElement('div');
+            newTabBtn.className = 'new-tab-btn';
+            newTabBtn.textContent = '+';
+            newTabBtn.onclick = createSafariTab;
+            tabsContainer.appendChild(newTabBtn);
+        }
+
+        function renderSafariContent() {
+            const activeTab = state.safari.tabs.find(t => t.active);
+            if (!activeTab) return;
+
+            const content = document.getElementById('safari-content');
+            document.getElementById('address-bar').value = activeTab.url;
+
+            // Simulate different web pages
+            if (activeTab.url.includes('apple.com')) {
+                content.innerHTML = `
+                    <h1>Welcome to Apple</h1>
+                    <p>This is a simulated version of apple.com</p>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
+                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
+                            <h3>MacBook Pro</h3>
+                            <p>The most powerful Mac ever.</p>
+                        </div>
+                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
+                            <h3>iPhone 15</h3>
+                            <p>So advanced. So beautiful.</p>
+                        </div>
+                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
+                            <h3>AirPods Pro</h3>
+                            <p>Rebuilt from the sound up.</p>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab.url.includes('google')) {
+                content.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px;">
+                        <h1 style="font-size: 72px; margin-bottom: 30px;">Google</h1>
+                        <input type="text" placeholder="Search Google or type a URL" style="width: 500px; padding: 15px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px;">
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <h1>Welcome to Safari</h1>
+                    <p>Enter a URL or search query in the address bar above.</p>
+                    <h2 style="margin-top: 40px;">Favorites</h2>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px;">
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;" onclick="safariNavigate('https://www.apple.com')">
+                            🍎 Apple
+                        </div>
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;" onclick="safariNavigate('https://www.google.com')">
+                            🔍 Google
+                        </div>
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                            📰 News
+                        </div>
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                            🎵 Music
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function createSafariTab() {
+            const newTab = {
+                id: state.safari.nextTabId++,
+                title: 'New Tab',
+                url: 'about:blank',
+                active: false
+            };
+
+            state.safari.tabs.forEach(t => t.active = false);
+            newTab.active = true;
+            state.safari.tabs.push(newTab);
+
+            renderSafariTabs();
+            renderSafariContent();
+        }
+
+        function closeSafariTab(tabId, event) {
+            event.stopPropagation();
+            const index = state.safari.tabs.findIndex(t => t.id === tabId);
+            if (index === -1 || state.safari.tabs.length === 1) return;
+
+            const wasActive = state.safari.tabs[index].active;
+            state.safari.tabs.splice(index, 1);
+
+            if (wasActive && state.safari.tabs.length > 0) {
+                state.safari.tabs[Math.max(0, index - 1)].active = true;
+            }
+
+            renderSafariTabs();
+            renderSafariContent();
+        }
+
+        function activateSafariTab(tabId) {
+            state.safari.tabs.forEach(t => t.active = t.id === tabId);
+            renderSafariTabs();
+            renderSafariContent();
+        }
+
+        function safariNavigate(url) {
+            const activeTab = state.safari.tabs.find(t => t.active);
+            if (!activeTab) return;
+
+            activeTab.url = url;
+            if (url.includes('apple.com')) {
+                activeTab.title = 'Apple';
+            } else if (url.includes('google')) {
+                activeTab.title = 'Google';
+            } else {
+                activeTab.title = 'New Tab';
+            }
+
+            renderSafariTabs();
+            renderSafariContent();
+        }
+
+        function safariBack() {
+            // Simplified - would need full history implementation
+            console.log('Back');
+        }
+
+        function safariForward() {
+            console.log('Forward');
+        }
+
+        function safariRefresh() {
+            renderSafariContent();
+        }
+
+        // Terminal Functions
+        function handleTerminalInput(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                const output = document.getElementById('terminal-output');
+
+                // Add command to history
+                state.terminal.history.push(input);
+                state.terminal.historyIndex = state.terminal.history.length;
+
+                // Echo command
+                const cmdLine = document.createElement('div');
+                cmdLine.className = 'terminal-line';
+                cmdLine.innerHTML = `<span class="terminal-prompt">user@macos ${state.terminal.currentDir} % </span>${input}`;
+                output.insertBefore(cmdLine, output.lastElementChild);
+
+                // Execute command
+                const result = executeTerminalCommand(input);
+                if (result) {
+                    const resultLine = document.createElement('div');
+                    resultLine.className = 'terminal-line';
+                    resultLine.innerHTML = result;
+                    output.insertBefore(resultLine, output.lastElementChild);
+                }
+
+                // Clear input
+                e.target.value = '';
+
+                // Scroll to bottom
+                output.scrollTop = output.scrollHeight;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (state.terminal.historyIndex > 0) {
+                    state.terminal.historyIndex--;
+                    e.target.value = state.terminal.history[state.terminal.historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (state.terminal.historyIndex < state.terminal.history.length - 1) {
+                    state.terminal.historyIndex++;
+                    e.target.value = state.terminal.history[state.terminal.historyIndex];
+                } else {
+                    state.terminal.historyIndex = state.terminal.history.length;
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function executeTerminalCommand(cmd) {
+            const parts = cmd.split(' ');
+            const command = parts[0];
+            const args = parts.slice(1);
+
+            switch (command) {
+                case 'help':
+                    return `Available commands:
+  ls          - list directory contents
+  pwd         - print working directory
+  cd [dir]    - change directory
+  mkdir [dir] - create directory
+  touch [file]- create file
+  cat [file]  - display file contents
+  echo [text] - print text
+  clear       - clear terminal
+  date        - show current date/time
+  whoami      - show current user
+  uname -a    - system information
+  help        - show this help message`;
+
+                case 'ls':
+                    return 'Applications  Desktop  Documents  Downloads  Library  Music  Pictures  Public';
+
+                case 'pwd':
+                    return `/Users/user${state.terminal.currentDir !== '~' ? '/' + state.terminal.currentDir : ''}`;
+
+                case 'cd':
+                    if (args.length === 0 || args[0] === '~') {
+                        state.terminal.currentDir = '~';
+                    } else {
+                        state.terminal.currentDir = args[0];
+                    }
+                    return '';
+
+                case 'mkdir':
+                    return args.length > 0 ? '' : 'mkdir: missing operand';
+
+                case 'touch':
+                    return args.length > 0 ? '' : 'touch: missing file operand';
+
+                case 'cat':
+                    return args.length > 0 ? `Contents of ${args[0]}` : 'cat: missing file operand';
+
+                case 'echo':
+                    return args.join(' ');
+
+                case 'clear':
+                    setTimeout(() => {
+                        const output = document.getElementById('terminal-output');
+                        output.innerHTML = `
+                            <div class="terminal-input-line">
+                                <span class="terminal-prompt">user@macos ${state.terminal.currentDir} % </span>
+                                <input type="text" class="terminal-input" id="terminal-input" autofocus>
+                            </div>
+                        `;
+                        document.getElementById('terminal-input').addEventListener('keydown', handleTerminalInput);
+                        document.getElementById('terminal-input').focus();
+                    }, 0);
+                    return '';
+
+                case 'date':
+                    return new Date().toString();
+
+                case 'whoami':
+                    return 'user';
+
+                case 'uname':
+                    if (args[0] === '-a') {
+                        return 'Darwin MacBook-Pro.local 21.6.0 Darwin Kernel Version 21.6.0 x86_64';
+                    }
+                    return 'Darwin';
+
+                case '':
+                    return '';
+
+                default:
+                    return `zsh: command not found: ${command}`;
+            }
+        }
+
+        // Calculator Functions
+        function calcNumber(num) {
+            if (state.calculator.waitingForOperand) {
+                state.calculator.display = num;
+                state.calculator.waitingForOperand = false;
+            } else {
+                state.calculator.display = state.calculator.display === '0' ? num : state.calculator.display + num;
+            }
+            updateCalcDisplay();
+        }
+
+        function calcOperation(op) {
+            const inputValue = parseFloat(state.calculator.display);
+
+            if (state.calculator.previousValue === null) {
+                state.calculator.previousValue = inputValue;
+            } else if (state.calculator.operation) {
+                const result = performCalculation();
+                state.calculator.display = String(result);
+                state.calculator.previousValue = result;
+            }
+
+            state.calculator.waitingForOperand = true;
+            state.calculator.operation = op;
+            updateCalcDisplay();
+        }
+
+        function calcEquals() {
+            const result = performCalculation();
+            state.calculator.display = String(result);
+            state.calculator.previousValue = null;
+            state.calculator.operation = null;
+            state.calculator.waitingForOperand = true;
+            updateCalcDisplay();
+        }
+
+        function performCalculation() {
+            const inputValue = parseFloat(state.calculator.display);
+            const previousValue = state.calculator.previousValue;
+
+            switch (state.calculator.operation) {
+                case '+':
+                    return previousValue + inputValue;
+                case '−':
+                    return previousValue - inputValue;
+                case '×':
+                    return previousValue * inputValue;
+                case '÷':
+                    return previousValue / inputValue;
+                default:
+                    return inputValue;
+            }
+        }
+
+        function calcClear() {
+            state.calculator.display = '0';
+            state.calculator.previousValue = null;
+            state.calculator.operation = null;
+            state.calculator.waitingForOperand = false;
+            updateCalcDisplay();
+        }
+
+        function calcToggleSign() {
+            state.calculator.display = String(parseFloat(state.calculator.display) * -1);
+            updateCalcDisplay();
+        }
+
+        function calcPercent() {
+            state.calculator.display = String(parseFloat(state.calculator.display) / 100);
+            updateCalcDisplay();
+        }
+
+        function calcDecimal() {
+            if (!state.calculator.display.includes('.')) {
+                state.calculator.display += '.';
+                updateCalcDisplay();
+            }
+        }
+
+        function updateCalcDisplay() {
+            const display = document.getElementById('calc-display');
+            if (display) {
+                display.textContent = state.calculator.display;
+            }
+        }
+
+        // Notes Functions
+        function renderNotesList() {
+            const list = document.getElementById('notes-list');
+            list.innerHTML = '';
+
+            state.notes.forEach(note => {
+                const div = document.createElement('div');
+                div.className = 'note-item' + (note.id === state.activeNote ? ' active' : '');
+                div.innerHTML = `
+                    <div class="note-title">${note.title}</div>
+                    <div class="note-preview">${note.content.substring(0, 50)}...</div>
+                `;
+                div.onclick = () => loadNote(note.id);
+                list.appendChild(div);
+            });
+        }
+
+        function loadNote(noteId) {
+            state.activeNote = noteId;
+            const note = state.notes.find(n => n.id === noteId);
+            if (note) {
+                const content = document.getElementById('notes-content');
+                if (content) {
+                    content.value = note.content;
+                }
+                renderNotesList();
+            }
+        }
+
+        function saveCurrentNote(content) {
+            const note = state.notes.find(n => n.id === state.activeNote);
+            if (note) {
+                note.content = content;
+                // Update title from first line
+                const firstLine = content.split('\n')[0];
+                if (firstLine) {
+                    note.title = firstLine.substring(0, 30);
+                }
+                renderNotesList();
+            }
+        }
+
+        function createNewNote() {
+            const newNote = {
+                id: state.notes.length + 1,
+                title: 'New Note',
+                content: ''
+            };
+            state.notes.unshift(newNote);
+            loadNote(newNote.id);
+        }
+
+        function deleteNote() {
+            if (state.notes.length <= 1) return;
+
+            state.notes = state.notes.filter(n => n.id !== state.activeNote);
+            loadNote(state.notes[0].id);
+        }
+
+        // Settings Functions
+        function showSettings(category) {
+            const content = document.getElementById('settings-content');
+
+            // Update sidebar active state
+            document.querySelectorAll('.settings-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.toLowerCase().includes(category)) {
+                    item.classList.add('active');
+                }
+            });
+
+            switch (category) {
+                case 'appearance':
+                    content.innerHTML = `
+                        <div class="settings-section">
+                            <div class="settings-title">Appearance</div>
+                            <div class="setting-row">
+                                <div class="setting-label">Dark Mode</div>
+                                <div class="toggle-switch ${state.theme === 'dark' ? 'active' : ''}" onclick="toggleTheme()"></div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label">Accent Color</div>
+                                <select class="btn" style="padding: 8px 12px;">
+                                    <option>Blue</option>
+                                    <option>Purple</option>
+                                    <option>Pink</option>
+                                    <option>Red</option>
+                                    <option>Orange</option>
+                                    <option>Yellow</option>
+                                    <option>Green</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'desktop':
+                    content.innerHTML = `
+                        <div class="settings-section">
+                            <div class="settings-title">Desktop & Screen Saver</div>
+                            <div class="setting-row">
+                                <div class="setting-label">Show Icons on Desktop</div>
+                                <div class="toggle-switch active"></div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label">Wallpaper</div>
+                                <button class="btn">Change...</button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'displays':
+                    content.innerHTML = `
+                        <div class="settings-section">
+                            <div class="settings-title">Displays</div>
+                            <div class="setting-row">
+                                <div class="setting-label">Resolution</div>
+                                <select class="btn" style="padding: 8px 12px;">
+                                    <option>1920 × 1080</option>
+                                    <option>2560 × 1440</option>
+                                    <option>3840 × 2160</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label">Brightness</div>
+                                <input type="range" min="0" max="100" value="75" style="flex: 1;">
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'sound':
+                    content.innerHTML = `
+                        <div class="settings-section">
+                            <div class="settings-title">Sound</div>
+                            <div class="setting-row">
+                                <div class="setting-label">Output Volume</div>
+                                <input type="range" min="0" max="100" value="50" style="flex: 1;">
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label">Alert Sound</div>
+                                <select class="btn" style="padding: 8px 12px;">
+                                    <option>Basso</option>
+                                    <option>Blow</option>
+                                    <option>Bottle</option>
+                                    <option>Frog</option>
+                                    <option>Funk</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'network':
+                    content.innerHTML = `
+                        <div class="settings-section">
+                            <div class="settings-title">Network</div>
+                            <div class="setting-row">
+                                <div class="setting-label">Wi-Fi</div>
+                                <div class="toggle-switch active"></div>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label">Connected to: Home Network</div>
+                                <button class="btn">Details...</button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', state.theme);
+            showSettings('appearance');
+        }
+
+        // Calendar Functions
+        let currentDate = new Date();
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('calendar-title').textContent =
+                new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            // Day headers
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            days.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                grid.appendChild(document.createElement('div'));
+            }
+
+            // Day cells
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-day';
+
+                if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    cell.classList.add('today');
+                }
+
+                cell.innerHTML = `<div class="calendar-day-number">${day}</div>`;
+                grid.appendChild(cell);
+            }
+        }
+
+        function calendarPrevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function calendarNextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function calendarToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        // Mail Functions
+        function renderMailList() {
+            const list = document.getElementById('mail-list');
+            const emails = state.mail.folders[state.mail.activeFolder];
+
+            list.innerHTML = '';
+            emails.forEach(email => {
+                const div = document.createElement('div');
+                div.className = 'mail-item' + (email.id === state.mail.activeMail ? ' active' : '');
+                div.innerHTML = `
+                    <div class="mail-sender">${email.sender}</div>
+                    <div class="mail-subject">${email.subject}</div>
+                    <div class="mail-preview">${email.preview}</div>
+                `;
+                div.onclick = () => showMail(email.id);
+                list.appendChild(div);
+            });
+        }
+
+        function showMail(mailId) {
+            state.mail.activeMail = mailId;
+            const email = state.mail.folders[state.mail.activeFolder].find(e => e.id === mailId);
+
+            if (email) {
+                const content = document.getElementById('mail-content');
+                content.innerHTML = `
+                    <div class="mail-header">
+                        <div class="mail-header-subject">${email.subject}</div>
+                        <div class="mail-header-from">From: ${email.sender}</div>
+                    </div>
+                    <div class="mail-body">${email.content}</div>
+                `;
+                renderMailList();
+            }
+        }
+
+        function mailSelectFolder(folder) {
+            state.mail.activeFolder = folder;
+            state.mail.activeMail = null;
+
+            // Update sidebar
+            document.querySelectorAll('.mail-sidebar .sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.toLowerCase().includes(folder)) {
+                    item.classList.add('active');
+                }
+            });
+
+            renderMailList();
+
+            const content = document.getElementById('mail-content');
+            content.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">
+                    Select an email to read
+                </div>
+            `;
+        }
+
+        function composeMail() {
+            alert('Compose mail functionality would open a new window here!');
+        }
+
+        // Spotlight Search
+        function toggleSpotlight() {
+            const spotlight = document.getElementById('spotlight');
+            spotlight.classList.toggle('active');
+
+            if (spotlight.classList.contains('active')) {
+                const input = document.getElementById('spotlight-input');
+                input.value = '';
+                input.focus();
+                updateSpotlightResults('');
+            }
+        }
+
+        document.getElementById('spotlight-input').addEventListener('input', (e) => {
+            updateSpotlightResults(e.target.value);
+        });
+
+        document.getElementById('spotlight-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                toggleSpotlight();
+            } else if (e.key === 'Enter') {
+                const results = document.querySelectorAll('.spotlight-result');
+                if (results.length > 0) {
+                    const selected = document.querySelector('.spotlight-result.selected') || results[0];
+                    const appId = selected.getAttribute('data-app');
+                    if (appId) {
+                        launchApp(appId);
+                        toggleSpotlight();
+                    }
+                }
+            }
+        });
+
+        function updateSpotlightResults(query) {
+            const results = document.getElementById('spotlight-results');
+
+            if (!query) {
+                results.innerHTML = '';
+                return;
+            }
+
+            const searchableApps = Object.values(apps).filter(app =>
+                app.name.toLowerCase().includes(query.toLowerCase())
+            );
+
+            results.innerHTML = '';
+            searchableApps.forEach((app, index) => {
+                const div = document.createElement('div');
+                div.className = 'spotlight-result' + (index === 0 ? ' selected' : '');
+                div.setAttribute('data-app', app.id);
+                div.innerHTML = `
+                    <div class="spotlight-icon">📦</div>
+                    <div>
+                        <div style="font-weight: 600;">${app.name}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Application</div>
+                    </div>
+                `;
+                div.onclick = () => {
+                    launchApp(app.id);
+                    toggleSpotlight();
+                };
+                results.appendChild(div);
+            });
+        }
+
+        // Menu Bar Functions
+        document.querySelector('.apple-logo').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const menu = document.getElementById('apple-menu');
+            menu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.menu-dropdown').forEach(menu => {
+                menu.classList.remove('active');
+            });
+        });
+
+        function showAboutMac() {
+            alert('macOS Simulator v1.0\nBuilt with HTML, CSS, and JavaScript\n\n© 2024 macOS Simulator');
+        }
+
+        function systemSleep() {
+            alert('Sleep functionality would dim the screen here!');
+        }
+
+        function systemRestart() {
+            if (confirm('Are you sure you want to restart?')) {
+                location.reload();
+            }
+        }
+
+        function systemShutdown() {
+            if (confirm('Are you sure you want to shut down?')) {
+                document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: black; color: white; font-size: 24px;">Shutting down...</div>';
+            }
+        }
+
+        // Clock Update
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+
+            document.getElementById('clock').textContent =
+                `${displayHours}:${displayMinutes} ${ampm}`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Cmd+Space for Spotlight
+            if ((e.metaKey || e.ctrlKey) && e.code === 'Space') {
+                e.preventDefault();
+                toggleSpotlight();
+            }
+        });
+
+        // Close spotlight when clicking outside
+        document.getElementById('spotlight').addEventListener('click', (e) => {
+            if (e.target.id === 'spotlight') {
+                toggleSpotlight();
+            }
+        });
+
+        // Initialize
+        console.log('macOS Simulator loaded successfully!');
+        console.log('Click on dock icons to launch applications');
+        console.log('Press Cmd+Space (or Ctrl+Space) to open Spotlight');
+    </script>
+</body>
+</html>
