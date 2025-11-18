@@ -421,6 +421,87 @@
             word-break: break-word;
         }
 
+        /* List View */
+        .finder-items.list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .finder-items.list-view .finder-item {
+            flex-direction: row;
+            justify-content: flex-start;
+            padding: 8px 12px;
+            border-radius: 4px;
+            gap: 12px;
+        }
+
+        .finder-items.list-view .finder-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
+        }
+
+        .finder-items.list-view .finder-name {
+            flex: 1;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .finder-items.list-view .finder-item-details {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Column View */
+        .finder-items.column-view {
+            display: flex;
+            flex-direction: row;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .finder-column {
+            min-width: 200px;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .finder-items.column-view .finder-item {
+            flex-direction: row;
+            justify-content: flex-start;
+            padding: 6px 10px;
+            border-radius: 0;
+            gap: 8px;
+        }
+
+        .finder-items.column-view .finder-icon {
+            width: 20px;
+            height: 20px;
+            font-size: 14px;
+        }
+
+        .finder-items.column-view .finder-name {
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .finder-search-input {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .finder-search-input:focus {
+            outline: none;
+            border-color: var(--macos-blue);
+        }
+
         .finder-statusbar {
             height: 24px;
             background: var(--bg-secondary);
@@ -2105,6 +2186,10 @@
                     }
                 }
             },
+            finder: {
+                viewMode: 'icon', // 'icon', 'list', 'column'
+                searchQuery: ''
+            },
             terminal: {
                 currentDir: '~',
                 history: [],
@@ -2516,9 +2601,10 @@
                     <button class="btn" onclick="finderBack()">◀</button>
                     <button class="btn" onclick="finderForward()">▶</button>
                     <span style="flex: 1; padding: 0 15px;" id="finder-path">Desktop</span>
-                    <button class="btn">⊞</button>
-                    <button class="btn">⊟</button>
-                    <button class="btn">≣</button>
+                    <input type="text" class="finder-search-input" placeholder="Search" oninput="finderSearch(this.value)" style="width: 150px; margin-right: 10px;">
+                    <button class="btn ${state.finder.viewMode === 'icon' ? 'active' : ''}" onclick="setFinderViewMode('icon')" title="Icon View">⊞</button>
+                    <button class="btn ${state.finder.viewMode === 'list' ? 'active' : ''}" onclick="setFinderViewMode('list')" title="List View">⊟</button>
+                    <button class="btn ${state.finder.viewMode === 'column' ? 'active' : ''}" onclick="setFinderViewMode('column')" title="Column View">≣</button>
                 `,
                 render: (container) => {
                     container.innerHTML = `
@@ -2629,6 +2715,33 @@
                             </div>
                         </div>
                     `;
+
+                    // Add keyboard support
+                    container.setAttribute('tabindex', '0');
+                    container.focus();
+
+                    container.addEventListener('keydown', (e) => {
+                        if (e.key >= '0' && e.key <= '9') {
+                            calcNumber(e.key);
+                        } else if (e.key === '.') {
+                            calcDecimal();
+                        } else if (e.key === '+') {
+                            calcOperation('+');
+                        } else if (e.key === '-') {
+                            calcOperation('−');
+                        } else if (e.key === '*') {
+                            calcOperation('×');
+                        } else if (e.key === '/') {
+                            e.preventDefault();
+                            calcOperation('÷');
+                        } else if (e.key === 'Enter' || e.key === '=') {
+                            calcEquals();
+                        } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
+                            calcClear();
+                        } else if (e.key === '%') {
+                            calcPercent();
+                        }
+                    });
                 }
             },
             notes: {
@@ -2893,15 +3006,36 @@
 
             const pathEl = windowEl.querySelector('#finder-path') || windowEl.querySelector('[id^="finder-path"]');
             if (pathEl) pathEl.textContent = path;
+
+            renderFinderItems(windowEl, path);
+        }
+
+        function renderFinderItems(windowEl, path) {
             const items = state.fileSystem['/'][path]?.contents || {};
             const itemsContainer = windowEl.querySelector('#finder-items');
 
             if (!itemsContainer) return;
 
+            // Apply view mode class
+            itemsContainer.className = 'finder-items';
+            if (state.finder.viewMode === 'list') {
+                itemsContainer.classList.add('list-view');
+            } else if (state.finder.viewMode === 'column') {
+                itemsContainer.classList.add('column-view');
+            }
+
             itemsContainer.innerHTML = '';
             let count = 0;
 
-            for (const [name, item] of Object.entries(items)) {
+            // Filter items if search query exists
+            let filteredItems = Object.entries(items);
+            if (state.finder.searchQuery) {
+                filteredItems = filteredItems.filter(([name]) =>
+                    name.toLowerCase().includes(state.finder.searchQuery.toLowerCase())
+                );
+            }
+
+            for (const [name, item] of filteredItems) {
                 count++;
                 const icon = item.type === 'folder' ? '📁' : item.type === 'app' ? '📦' : '📄';
                 const div = document.createElement('div');
@@ -2950,6 +3084,46 @@
                 finderState.historyIndex++;
                 finderNavigate(finderState.history[finderState.historyIndex], false);
             }
+        }
+
+        function setFinderViewMode(mode) {
+            state.finder.viewMode = mode;
+
+            // Re-render all open Finder windows
+            state.windows.forEach(w => {
+                if (w.appId === 'finder') {
+                    const windowEl = document.getElementById(w.id);
+                    if (windowEl) {
+                        const finderState = getFinderState(windowEl);
+                        renderFinderItems(windowEl, finderState.currentPath);
+
+                        // Update toolbar button states
+                        const toolbar = windowEl.querySelector('.window-toolbar');
+                        if (toolbar) {
+                            toolbar.querySelectorAll('.btn').forEach(btn => {
+                                btn.classList.remove('active');
+                            });
+                            const activeBtn = toolbar.querySelector(`[onclick*="'${mode}'"]`);
+                            if (activeBtn) activeBtn.classList.add('active');
+                        }
+                    }
+                }
+            });
+        }
+
+        function finderSearch(query) {
+            state.finder.searchQuery = query.trim();
+
+            // Re-render all open Finder windows with search filter
+            state.windows.forEach(w => {
+                if (w.appId === 'finder') {
+                    const windowEl = document.getElementById(w.id);
+                    if (windowEl) {
+                        const finderState = getFinderState(windowEl);
+                        renderFinderItems(windowEl, finderState.currentPath);
+                    }
+                }
+            });
         }
 
         // Safari Functions
