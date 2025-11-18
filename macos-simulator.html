@@ -570,6 +570,24 @@
             opacity: 1;
         }
 
+        .safari-new-tab {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .safari-new-tab:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
         .safari-tab .close-tab:hover {
             background: rgba(0,0,0,0.2);
         }
@@ -1122,6 +1140,81 @@
 
         .mail-body {
             line-height: 1.6;
+        }
+
+        /* Mail Compose Modal */
+        .compose-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .compose-modal {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            width: 700px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .compose-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .compose-modal-body {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .compose-field {
+            margin-bottom: 15px;
+        }
+
+        .compose-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .compose-field input,
+        .compose-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 14px;
+        }
+
+        .compose-field textarea {
+            resize: vertical;
+            min-height: 250px;
+        }
+
+        .compose-modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }
 
         /* Button Styles */
@@ -2446,6 +2539,13 @@
                     if (w.id === windowId) {
                         w.element.style.zIndex = state.nextZIndex++;
                         state.activeWindow = windowId;
+
+                        // Update menu bar with active app name
+                        const appMenuName = document.getElementById('app-menu-name');
+                        if (appMenuName && w.appId) {
+                            const appData = apps[w.appId];
+                            appMenuName.textContent = appData ? appData.name : 'Finder';
+                        }
                     }
                 });
             }
@@ -3147,10 +3247,25 @@
             });
 
             const newTabBtn = document.createElement('div');
-            newTabBtn.className = 'new-tab-btn';
+            newTabBtn.className = 'safari-new-tab';
             newTabBtn.textContent = '+';
-            newTabBtn.onclick = createSafariTab;
+            newTabBtn.onclick = safariNewTab;
             tabsContainer.appendChild(newTabBtn);
+        }
+
+        function safariNewTab() {
+            const newId = state.safari.nextTabId++;
+            state.safari.tabs.forEach(t => t.active = false);
+            state.safari.tabs.push({
+                id: newId,
+                title: 'New Tab',
+                url: '',
+                active: true,
+                history: [''],
+                historyIndex: 0
+            });
+            renderSafariTabs();
+            renderSafariContent();
         }
 
         function renderSafariContent() {
@@ -3160,50 +3275,182 @@
             const content = document.getElementById('safari-content');
             document.getElementById('address-bar').value = activeTab.url;
 
-            // Simulate different web pages
+            // Simulate different web pages with realistic styling
             if (activeTab.url.includes('apple.com')) {
                 content.innerHTML = `
-                    <h1>Welcome to Apple</h1>
-                    <p>This is a simulated version of apple.com</p>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
-                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
-                            <h3>MacBook Pro</h3>
-                            <p>The most powerful Mac ever.</p>
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 40px; text-align: center; margin: -20px -20px 30px -20px;">
+                        <h1 style="font-size: 56px; font-weight: 700; margin: 0 0 20px 0;">iPhone 15 Pro</h1>
+                        <p style="font-size: 24px; margin: 0 0 30px 0;">Titanium. So strong. So light. So Pro.</p>
+                        <button style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer;">Learn more</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; padding: 0 40px;">
+                        <div style="text-align: center;">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 64px;">💻</div>
+                            <h3 style="font-size: 24px; margin: 0 0 10px 0;">MacBook Pro</h3>
+                            <p style="color: #666; margin: 0 0 15px 0;">Supercharged by M3 Pro and M3 Max</p>
+                            <a href="#" style="color: #0066cc; text-decoration: none; font-weight: 500;">Buy →</a>
                         </div>
-                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
-                            <h3>iPhone 15</h3>
-                            <p>So advanced. So beautiful.</p>
+                        <div style="text-align: center;">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 64px;">⌚</div>
+                            <h3 style="font-size: 24px; margin: 0 0 10px 0;">Apple Watch</h3>
+                            <p style="color: #666; margin: 0 0 15px 0;">A healthy leap ahead</p>
+                            <a href="#" style="color: #0066cc; text-decoration: none; font-weight: 500;">Buy →</a>
                         </div>
-                        <div style="padding: 20px; background: var(--bg-secondary); border-radius: 10px;">
-                            <h3>AirPods Pro</h3>
-                            <p>Rebuilt from the sound up.</p>
+                        <div style="text-align: center;">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); border-radius: 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 64px;">🎧</div>
+                            <h3 style="font-size: 24px; margin: 0 0 10px 0;">AirPods Pro</h3>
+                            <p style="color: #666; margin: 0 0 15px 0;">Rebuilt from the sound up</p>
+                            <a href="#" style="color: #0066cc; text-decoration: none; font-weight: 500;">Buy →</a>
                         </div>
                     </div>
                 `;
             } else if (activeTab.url.includes('google')) {
                 content.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px;">
-                        <h1 style="font-size: 72px; margin-bottom: 30px;">Google</h1>
-                        <input type="text" placeholder="Search Google or type a URL" style="width: 500px; padding: 15px; border: 1px solid #ddd; border-radius: 24px; font-size: 16px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px;">
+                        <div style="font-size: 92px; font-weight: 700; margin-bottom: 30px; letter-spacing: -2px;">
+                            <span style="color: #4285F4;">G</span><span style="color: #EA4335;">o</span><span style="color: #FBBC04;">o</span><span style="color: #4285F4;">g</span><span style="color: #34A853;">l</span><span style="color: #EA4335;">e</span>
+                        </div>
+                        <div style="width: 600px; max-width: 90%; position: relative;">
+                            <input type="text" placeholder="Search Google or type a URL" style="width: 100%; padding: 18px 50px 18px 50px; border: 1px solid #dfe1e5; border-radius: 24px; font-size: 16px; box-shadow: 0 1px 6px rgba(32,33,36,.28);">
+                            <span style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 20px;">🔍</span>
+                            <span style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 20px;">🎤</span>
+                        </div>
+                        <div style="margin-top: 30px; display: flex; gap: 15px;">
+                            <button style="background: #f8f9fa; border: 1px solid #f8f9fa; padding: 10px 16px; border-radius: 4px; font-size: 14px; cursor: pointer;">Google Search</button>
+                            <button style="background: #f8f9fa; border: 1px solid #f8f9fa; padding: 10px 16px; border-radius: 4px; font-size: 14px; cursor: pointer;">I'm Feeling Lucky</button>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab.url.includes('github')) {
+                content.innerHTML = `
+                    <div style="background: #24292e; color: white; padding: 40px; margin: -20px -20px 30px -20px;">
+                        <div style="max-width: 1200px; margin: 0 auto;">
+                            <h1 style="font-size: 48px; margin: 0 0 20px 0;">Where the world builds software</h1>
+                            <p style="font-size: 20px; color: #959da5; margin: 0 0 30px 0;">Millions of developers use GitHub to build personal projects, support their businesses, and work together on open source technologies.</p>
+                            <div style="display: flex; gap: 15px;">
+                                <input type="text" placeholder="Search or jump to..." style="flex: 1; padding: 12px 16px; border: 1px solid #444d56; background: #1e2328; color: white; border-radius: 6px;">
+                                <button style="background: #238636; border: none; padding: 12px 24px; border-radius: 6px; color: white; font-weight: 600; cursor: pointer;">Sign up</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 0 40px;">
+                        <h2 style="margin: 0 0 20px 0;">Trending repositories</h2>
+                        <div style="border: 1px solid #d0d7de; border-radius: 6px; padding: 20px; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <span style="font-size: 24px;">📦</span>
+                                <strong style="color: #0969da;">torvalds/linux</strong>
+                            </div>
+                            <p style="color: #666; margin: 0;">Linux kernel source tree</p>
+                            <div style="margin-top: 10px; color: #666; font-size: 14px;">⭐ 175k</div>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab.url.includes('youtube')) {
+                content.innerHTML = `
+                    <div style="background: white; padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+                            <div style="font-size: 32px; font-weight: 700; color: #ff0000;">📺 YouTube</div>
+                            <div style="flex: 1; position: relative;">
+                                <input type="text" placeholder="Search" style="width: 100%; padding: 12px 50px 12px 16px; border: 1px solid #ccc; border-radius: 20px;">
+                                <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%);">🔍</span>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                            ${[1,2,3,4,5,6].map(i => `
+                                <div>
+                                    <div style="width: 100%; height: 180px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white;">▶️</div>
+                                    <div style="margin-top: 10px;">
+                                        <div style="font-weight: 600;">Amazing Video Title ${i}</div>
+                                        <div style="color: #666; font-size: 14px; margin-top: 5px;">Channel Name • 1.2M views</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab.url.includes('wikipedia')) {
+                content.innerHTML = `
+                    <div style="max-width: 900px; margin: 0 auto; padding: 40px;">
+                        <div style="text-align: center; margin-bottom: 40px;">
+                            <h1 style="font-size: 48px; margin: 0 0 10px 0;">📖 Wikipedia</h1>
+                            <p style="color: #666; font-size: 18px;">The Free Encyclopedia</p>
+                            <input type="text" placeholder="Search Wikipedia" style="width: 500px; max-width: 90%; padding: 15px 20px; border: 1px solid #a2a9b1; border-radius: 2px; margin-top: 20px; font-size: 16px;">
+                        </div>
+                        <div style="border: 1px solid #a2a9b1; border-radius: 2px; padding: 30px; background: #f8f9fa;">
+                            <h2 style="border-bottom: 1px solid #a2a9b1; padding-bottom: 10px; margin-top: 0;">Featured article</h2>
+                            <p style="line-height: 1.6; color: #202122;">
+                                Wikipedia is a free online encyclopedia, created and edited by volunteers around the world and hosted by the Wikimedia Foundation. With more than 60 million articles in 300 languages, Wikipedia is one of the most comprehensive and widely used reference works available on the internet.
+                            </p>
+                            <h3 style="margin-top: 30px;">Contents</h3>
+                            <ul style="line-height: 1.8; color: #0645ad;">
+                                <li>Introduction</li>
+                                <li>History</li>
+                                <li>Community</li>
+                                <li>Technology</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab.url === '' || !activeTab.url) {
+                // Safari start page with favorites
+                content.innerHTML = `
+                    <div style="max-width: 1000px; margin: 60px auto; padding: 0 40px;">
+                        <h2 style="font-size: 32px; font-weight: 300; margin: 0 0 40px 0;">Favorites</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 30px;">
+                            <div style="text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="safariNavigate('https://www.apple.com')">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">🍎</div>
+                                <div style="font-weight: 500;">Apple</div>
+                            </div>
+                            <div style="text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="safariNavigate('https://www.google.com')">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">G</div>
+                                <div style="font-weight: 500;">Google</div>
+                            </div>
+                            <div style="text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="safariNavigate('https://www.github.com')">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">🐙</div>
+                                <div style="font-weight: 500;">GitHub</div>
+                            </div>
+                            <div style="text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="safariNavigate('https://www.youtube.com')">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">📺</div>
+                                <div style="font-weight: 500;">YouTube</div>
+                            </div>
+                            <div style="text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="safariNavigate('https://www.wikipedia.org')">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">📖</div>
+                                <div style="font-weight: 500;">Wikipedia</div>
+                            </div>
+                            <div style="text-align: center; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 16px; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">🎵</div>
+                                <div style="font-weight: 500;">Music</div>
+                            </div>
+                        </div>
+                        <h2 style="font-size: 28px; font-weight: 300; margin: 60px 0 30px 0;">Privacy Report</h2>
+                        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 30px;">
+                            <div style="font-size: 48px; font-weight: 700; color: var(--macos-blue);">127</div>
+                            <div style="margin-top: 10px; color: #666;">trackers prevented from profiling you in the last 7 days</div>
+                        </div>
                     </div>
                 `;
             } else {
+                // Generic page template
                 content.innerHTML = `
-                    <h1>Welcome to Safari</h1>
-                    <p>Enter a URL or search query in the address bar above.</p>
-                    <h2 style="margin-top: 40px;">Favorites</h2>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px;">
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;" onclick="safariNavigate('https://www.apple.com')">
-                            🍎 Apple
+                    <div style="max-width: 900px; margin: 40px auto; padding: 0 40px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 40px; border-radius: 16px; text-align: center; margin-bottom: 40px;">
+                            <h1 style="font-size: 48px; margin: 0 0 20px 0;">Welcome to ${activeTab.url.replace('https://', '').replace('http://', '').split('/')[0]}</h1>
+                            <p style="font-size: 20px; margin: 0; opacity: 0.9;">This is a simulated webpage</p>
                         </div>
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;" onclick="safariNavigate('https://www.google.com')">
-                            🔍 Google
-                        </div>
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
-                            📰 News
-                        </div>
-                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
-                            🎵 Music
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 30px;">
+                                <h3 style="margin: 0 0 15px 0; font-size: 24px;">About</h3>
+                                <p style="color: #666; line-height: 1.6; margin: 0;">This is a simulated web page within the macOS Safari simulator. Real web content would appear here with actual HTML, CSS, and JavaScript.</p>
+                            </div>
+                            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 30px;">
+                                <h3 style="margin: 0 0 15px 0; font-size: 24px;">Features</h3>
+                                <ul style="color: #666; line-height: 1.8; margin: 10px 0; padding-left: 20px;">
+                                    <li>Multiple tabs support</li>
+                                    <li>Address bar navigation</li>
+                                    <li>Back/Forward buttons</li>
+                                    <li>Favorites grid</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -3828,7 +4075,114 @@
         }
 
         function composeMail() {
-            alert('Compose mail functionality would open a new window here!');
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'compose-modal-overlay';
+            overlay.onclick = (e) => {
+                if (e.target === overlay) closeComposeModal();
+            };
+
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'compose-modal';
+            modal.innerHTML = `
+                <div class="compose-modal-header">
+                    <h3 style="margin: 0; font-size: 18px;">New Message</h3>
+                    <button class="btn" onclick="closeComposeModal()" style="padding: 4px 10px;">✕</button>
+                </div>
+                <div class="compose-modal-body">
+                    <div class="compose-field">
+                        <label>To:</label>
+                        <input type="email" id="compose-to" placeholder="recipient@example.com">
+                    </div>
+                    <div class="compose-field">
+                        <label>Subject:</label>
+                        <input type="text" id="compose-subject" placeholder="Enter subject">
+                    </div>
+                    <div class="compose-field">
+                        <label>Message:</label>
+                        <textarea id="compose-message" placeholder="Type your message here..."></textarea>
+                    </div>
+                </div>
+                <div class="compose-modal-footer">
+                    <button class="btn" onclick="closeComposeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="sendMail()">Send</button>
+                </div>
+            `;
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            // Focus on "To" field
+            setTimeout(() => {
+                document.getElementById('compose-to').focus();
+            }, 100);
+        }
+
+        function closeComposeModal() {
+            const overlay = document.querySelector('.compose-modal-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        function sendMail() {
+            const to = document.getElementById('compose-to').value.trim();
+            const subject = document.getElementById('compose-subject').value.trim();
+            const message = document.getElementById('compose-message').value.trim();
+
+            if (!to || !subject || !message) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Add to sent folder
+            if (!state.mail.folders.sent) {
+                state.mail.folders.sent = [];
+            }
+
+            const newMail = {
+                id: Date.now(),
+                sender: 'Me',
+                recipient: to,
+                subject: subject,
+                preview: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
+                content: message,
+                date: new Date().toLocaleString()
+            };
+
+            state.mail.folders.sent.unshift(newMail);
+
+            // Close modal and show confirmation
+            closeComposeModal();
+
+            // If sent folder is active, refresh the list
+            if (state.mail.activeFolder === 'sent') {
+                renderMailList();
+            }
+
+            // Show success notification (brief alert)
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10001;
+                font-size: 14px;
+            `;
+            notification.textContent = `✓ Message sent to ${to}`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
         }
 
         // ========================================
@@ -4971,6 +5325,30 @@
         // Start boot sequence on load
         window.addEventListener('load', () => {
             startBootSequence();
+        });
+
+        // ========================================
+        // MENU BAR CLOCK UPDATE
+        // ========================================
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+
+            const timeString = `${displayHours}:${minutes} ${ampm}`;
+            const clockElement = document.getElementById('clock');
+            if (clockElement) {
+                clockElement.textContent = timeString;
+            }
+        }
+
+        // Update clock immediately and then every second
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            setInterval(updateClock, 1000);
         });
     </script>
 </body>
