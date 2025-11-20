@@ -3,14 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>macOS Simulator</title>
+    <title>macOS Simulator - Ultimate Edition</title>
+
+    <!-- ==================== FONTS ==================== -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- ==================== CDN LIBRARIES ==================== -->
+    <!-- jQuery 3.7.1 - Fast DOM manipulation -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- jQuery UI 1.13.2 - THE SECRET WEAPON for drag/resize -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"
+            integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0="
+            crossorigin="anonymous"></script>
+
+    <!-- Font Awesome 6.5.1 - Professional icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Interact.js - Backup drag/resize library -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.19/dist/interact.min.js"></script>
+
     <style>
         /* ==================== 1. CSS VARIABLES ==================== */
         :root {
+            /* macOS Colors */
             --macos-menu-bar: rgba(246, 246, 246, 0.8);
             --macos-dock-bg: rgba(255, 255, 255, 0.3);
             --macos-window-bg: #ffffff;
@@ -21,7 +44,23 @@
             --macos-green: #28C840;
             --macos-shadow: rgba(0, 0, 0, 0.2);
             --macos-border: rgba(0, 0, 0, 0.1);
+
+            /* Typography */
             --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+            /* Dock Magnification */
+            --dock-magnify-scale: 1.8;
+            --dock-neighbor-scale: 1.4;
+            --dock-neighbor-2-scale: 1.2;
+
+            /* Animation Easing */
+            --animation-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --animation-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Blur Effects */
+            --blur-strong: blur(30px);
+            --blur-medium: blur(20px);
+            --blur-light: blur(10px);
         }
 
         /* ==================== 2. RESET & BASE ==================== */
@@ -37,6 +76,8 @@
             width: 100vw;
             height: 100vh;
             background: #000;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         button {
@@ -46,7 +87,55 @@
             font-family: inherit;
         }
 
-        /* ==================== 3. BOOT SCREEN ==================== */
+        /* ==================== 3. ANIMATIONS & KEYFRAMES ==================== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes logoFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes progressBar {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes windowOpen {
+            from { opacity: 0; transform: scale(0.85) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes windowClose {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            25% { transform: translateY(-25px) scale(1); }
+            50% { transform: translateY(0) scale(1); }
+            75% { transform: translateY(-12px) scale(1); }
+        }
+
+        @keyframes contextMenuAppear {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ==================== 4. BOOT SCREEN ==================== */
         .boot-screen {
             position: fixed;
             top: 0;
@@ -89,27 +178,7 @@
             animation: progressBar 3s ease-in-out forwards;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-
-        @keyframes logoFadeIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes progressBar {
-            from { width: 0%; }
-            to { width: 100%; }
-        }
-
-        /* ==================== 4. DESKTOP ==================== */
+        /* ==================== 5. DESKTOP & WALLPAPER ==================== */
         .desktop {
             position: fixed;
             top: 0;
@@ -171,7 +240,7 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
-        /* ==================== 5. MENU BAR ==================== */
+        /* ==================== 6. MENU BAR ==================== */
         .menu-bar {
             position: fixed;
             top: 0;
@@ -179,7 +248,7 @@
             width: 100%;
             height: 28px;
             background: var(--macos-menu-bar);
-            backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: var(--blur-medium) saturate(180%);
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
@@ -233,7 +302,7 @@
             left: 0;
             min-width: 200px;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: var(--blur-medium) saturate(180%);
             border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -245,11 +314,6 @@
         .menu-dropdown.visible {
             display: block;
             animation: slideDown 0.15s ease-out;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .menu-dropdown-item {
@@ -284,14 +348,14 @@
             font-weight: 400;
         }
 
-        /* ==================== 6. DOCK ==================== */
+        /* ==================== 7. DOCK ==================== */
         .dock {
             position: fixed;
             bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: var(--blur-medium) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 16px;
             padding: 4px 8px;
@@ -307,7 +371,7 @@
             height: 48px;
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.2s var(--animation-ease);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -337,18 +401,11 @@
             border-radius: 50%;
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            25% { transform: translateY(-25px) scale(1); }
-            50% { transform: translateY(0) scale(1); }
-            75% { transform: translateY(-12px) scale(1); }
-        }
-
         .dock-icon.bouncing {
             animation: bounce 0.8s ease-in-out 2;
         }
 
-        /* ==================== 7. WINDOWS ==================== */
+        /* ==================== 8. WINDOWS SYSTEM ==================== */
         .windows-layer {
             position: fixed;
             top: 28px;
@@ -374,21 +431,11 @@
         .window.visible {
             display: flex;
             flex-direction: column;
-            animation: windowOpen 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: windowOpen 0.3s var(--animation-ease);
         }
 
         .window.closing {
-            animation: windowClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes windowOpen {
-            from { opacity: 0; transform: scale(0.85) translateY(30px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes windowClose {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0; transform: scale(0.9); }
+            animation: windowClose 0.3s var(--animation-ease) forwards;
         }
 
         .window-titlebar {
@@ -537,7 +584,8 @@
             cursor: nesw-resize;
         }
 
-        /* ==================== 8. FINDER APP ==================== */
+        /* ==================== 9. APPS SPECIFIC STYLES ==================== */
+        /* Finder */
         .finder-container {
             display: flex;
             height: 100%;
@@ -663,7 +711,7 @@
             word-break: break-word;
         }
 
-        /* ==================== 9. SAFARI APP ==================== */
+        /* Safari */
         .safari-container {
             display: flex;
             flex-direction: column;
@@ -764,7 +812,7 @@
             background: #f0f0f0;
         }
 
-        /* ==================== 10. TEXTEDIT APP ==================== */
+        /* TextEdit */
         .textedit-container {
             display: flex;
             flex-direction: column;
@@ -808,11 +856,11 @@
             outline: none;
         }
 
-        /* ==================== 11. CONTEXT MENU ==================== */
+        /* ==================== 10. CONTEXT MENUS ==================== */
         .context-menu {
             position: fixed;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: var(--blur-medium) saturate(180%);
             border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -825,11 +873,6 @@
         .context-menu.visible {
             display: block;
             animation: contextMenuAppear 0.15s ease-out;
-        }
-
-        @keyframes contextMenuAppear {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
         }
 
         .context-menu-item {
@@ -853,13 +896,25 @@
             margin: 4px 0;
         }
 
-        /* ==================== 12. UTILITIES ==================== */
+        /* ==================== 11. UTILITY CLASSES ==================== */
         .hidden {
             display: none !important;
         }
 
         .no-select {
             user-select: none;
+        }
+
+        .blur-background {
+            backdrop-filter: var(--blur-medium);
+        }
+
+        .spring-animation {
+            animation-timing-function: var(--animation-spring);
+        }
+
+        .ease-animation {
+            animation-timing-function: var(--animation-ease);
         }
     </style>
 </head>
@@ -876,7 +931,6 @@
 
     <!-- ==================== DESKTOP ==================== -->
     <div class="desktop" id="desktop">
-        <!-- Desktop Icons -->
         <div class="desktop-icons">
             <div class="desktop-icon" data-app="finder">
                 <svg viewBox="0 0 64 64">
@@ -937,15 +991,9 @@
             <div class="menu-item">Help</div>
         </div>
         <div class="menu-bar-right">
-            <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
-            <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
-            </svg>
-            <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zm-2.34 14h-2.67v-1.33h2.67V18zm0-2.67h-2.67v-8h2.67v8z"/>
-            </svg>
+            <i class="fa-solid fa-magnifying-glass system-icon"></i>
+            <i class="fa-solid fa-wifi system-icon"></i>
+            <i class="fa-solid fa-battery-three-quarters system-icon"></i>
             <div class="clock" id="clock">12:00 PM</div>
         </div>
     </div>
@@ -1077,63 +1125,54 @@
                         <div class="sidebar-section">
                             <div class="sidebar-title">Favorites</div>
                             <div class="sidebar-item active">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 9h5.5L13 3.5V9M6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4c0-1.11.89-2 2-2m0 18h12v-8H6v8z"/></svg>
+                                <i class="fa-solid fa-clock-rotate-left"></i>
                                 Recent
                             </div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>
+                                <i class="fa-solid fa-rocket"></i>
                                 Applications
                             </div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                                <i class="fa-solid fa-desktop"></i>
                                 Desktop
                             </div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>
+                                <i class="fa-solid fa-file"></i>
                                 Documents
                             </div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm14-9H5v2h14v-2zM5 4v2h14V4H5zm0 5h14V7H5v2z"/></svg>
+                                <i class="fa-solid fa-download"></i>
                                 Downloads
                             </div>
                         </div>
                         <div class="sidebar-section">
                             <div class="sidebar-title">Locations</div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+                                <i class="fa-solid fa-hard-drive"></i>
                                 Macintosh HD
                             </div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+                                <i class="fa-solid fa-cloud"></i>
                                 iCloud Drive
                             </div>
                             <div class="sidebar-item">
-                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                <i class="fa-solid fa-network-wired"></i>
                                 Network
                             </div>
                         </div>
                     </div>
                     <div class="finder-content">
                         <div class="finder-toolbar">
-                            <button class="toolbar-btn">← →</button>
-                            <button class="toolbar-btn">⚙️</button>
-                            <button class="toolbar-btn">Share</button>
+                            <button class="toolbar-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="toolbar-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button class="toolbar-btn"><i class="fa-solid fa-gear"></i></button>
+                            <button class="toolbar-btn"><i class="fa-solid fa-share-nodes"></i></button>
                             <input type="text" class="finder-search" placeholder="Search">
                         </div>
-                        <div class="finder-files" id="finderFiles">
-                            <!-- Files will be populated by JavaScript -->
-                        </div>
+                        <div class="finder-files" id="finderFiles"></div>
                     </div>
                 </div>
             </div>
-            <div class="resize-handle resize-n"></div>
-            <div class="resize-handle resize-s"></div>
-            <div class="resize-handle resize-e"></div>
-            <div class="resize-handle resize-w"></div>
-            <div class="resize-handle resize-ne"></div>
-            <div class="resize-handle resize-nw"></div>
-            <div class="resize-handle resize-se"></div>
-            <div class="resize-handle resize-sw"></div>
         </div>
     </template>
 
@@ -1167,12 +1206,12 @@
                     </div>
                     <div class="safari-toolbar">
                         <div class="safari-nav-btns">
-                            <button class="toolbar-btn">←</button>
-                            <button class="toolbar-btn">→</button>
+                            <button class="toolbar-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button class="toolbar-btn"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
-                        <input type="text" class="safari-address-bar" placeholder="Search or enter website" value="">
-                        <button class="toolbar-btn">⭐</button>
-                        <button class="toolbar-btn">📋</button>
+                        <input type="text" class="safari-address-bar" placeholder="Search or enter website">
+                        <button class="toolbar-btn"><i class="fa-solid fa-star"></i></button>
+                        <button class="toolbar-btn"><i class="fa-solid fa-list"></i></button>
                     </div>
                     <div class="safari-content">
                         <div class="safari-default-page">
@@ -1180,19 +1219,19 @@
                             <p style="color: #666; margin-bottom: 20px;">Your window to the web</p>
                             <div class="safari-favorites">
                                 <div class="safari-favorite">
-                                    <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;"><i class="fa-brands fa-google"></i></div>
                                     <div>Google</div>
                                 </div>
                                 <div class="safari-favorite">
-                                    <div style="font-size: 32px; margin-bottom: 8px;">📰</div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;"><i class="fa-solid fa-newspaper"></i></div>
                                     <div>News</div>
                                 </div>
                                 <div class="safari-favorite">
-                                    <div style="font-size: 32px; margin-bottom: 8px;">🎬</div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;"><i class="fa-brands fa-youtube"></i></div>
                                     <div>YouTube</div>
                                 </div>
                                 <div class="safari-favorite">
-                                    <div style="font-size: 32px; margin-bottom: 8px;">🐙</div>
+                                    <div style="font-size: 32px; margin-bottom: 8px;"><i class="fa-brands fa-github"></i></div>
                                     <div>GitHub</div>
                                 </div>
                             </div>
@@ -1200,14 +1239,6 @@
                     </div>
                 </div>
             </div>
-            <div class="resize-handle resize-n"></div>
-            <div class="resize-handle resize-s"></div>
-            <div class="resize-handle resize-e"></div>
-            <div class="resize-handle resize-w"></div>
-            <div class="resize-handle resize-ne"></div>
-            <div class="resize-handle resize-nw"></div>
-            <div class="resize-handle resize-se"></div>
-            <div class="resize-handle resize-sw"></div>
         </div>
     </template>
 
@@ -1236,9 +1267,9 @@
             <div class="window-content">
                 <div class="textedit-container">
                     <div class="textedit-toolbar">
-                        <button class="textedit-btn" data-cmd="bold"><b>B</b></button>
-                        <button class="textedit-btn" data-cmd="italic"><i>I</i></button>
-                        <button class="textedit-btn" data-cmd="underline"><u>U</u></button>
+                        <button class="textedit-btn" data-cmd="bold"><i class="fa-solid fa-bold"></i></button>
+                        <button class="textedit-btn" data-cmd="italic"><i class="fa-solid fa-italic"></i></button>
+                        <button class="textedit-btn" data-cmd="underline"><i class="fa-solid fa-underline"></i></button>
                         <select class="textedit-select">
                             <option>Inter</option>
                             <option>Helvetica</option>
@@ -1266,30 +1297,32 @@ You can:
 Start typing to create your document...</div>
                 </div>
             </div>
-            <div class="resize-handle resize-n"></div>
-            <div class="resize-handle resize-s"></div>
-            <div class="resize-handle resize-e"></div>
-            <div class="resize-handle resize-w"></div>
-            <div class="resize-handle resize-ne"></div>
-            <div class="resize-handle resize-nw"></div>
-            <div class="resize-handle resize-se"></div>
-            <div class="resize-handle resize-sw"></div>
         </div>
     </template>
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        // ==================== STATE MANAGEMENT ====================
-        const state = {
-            activeWindow: null,
-            windows: [],
-            maxZIndex: 100,
-            openApps: new Set(['finder']),
-            dockHoverIndex: -1
+        // ==================== 1. CONFIGURATION ====================
+        const CONFIG = {
+            BOOT_DURATION: 4500,
+            CLOCK_UPDATE_INTERVAL: 60000,
+            FINDER_OPEN_DELAY: 5000,
+            BOUNCE_DURATION: 1600,
+            MINIMIZE_DURATION: 500,
+            CLOSE_DURATION: 300,
+            DOCK_MAGNIFY: {
+                HOVER: 1.8,
+                ADJACENT: 1.4,
+                TWO_AWAY: 1.2
+            },
+            WINDOW: {
+                MIN_WIDTH: 400,
+                MIN_HEIGHT: 300
+            }
         };
 
-        // ==================== FILE DATA ====================
-        const fileIcons = {
+        // File type icons (SVG strings)
+        const FILE_ICONS = {
             folder: '<svg viewBox="0 0 48 48"><defs><linearGradient id="fGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#66B3FF;stop-opacity:1"/><stop offset="100%" style="stop-color:#3399FF;stop-opacity:1"/></linearGradient></defs><rect x="4" y="12" width="40" height="28" rx="2" fill="url(#fGrad)"/></svg>',
             pdf: '<svg viewBox="0 0 48 48"><rect x="8" y="4" width="32" height="40" rx="2" fill="#EF4444"/><text x="24" y="30" text-anchor="middle" fill="white" font-size="12" font-weight="bold">PDF</text></svg>',
             image: '<svg viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="2" fill="#10B981"/><circle cx="16" cy="16" r="3" fill="white"/><path d="M6 35l8-8 6 6 10-10 12 8v11H6z" fill="white" opacity="0.6"/></svg>',
@@ -1300,7 +1333,8 @@ Start typing to create your document...</div>
             app: '<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="6" fill="#3B82F6"/><circle cx="24" cy="24" r="8" fill="white" opacity="0.9"/></svg>'
         };
 
-        const finderFiles = [
+        // Sample files for Finder
+        const FINDER_FILES = [
             { name: 'Documents', type: 'folder' },
             { name: 'Photos', type: 'folder' },
             { name: 'Music', type: 'folder' },
@@ -1327,496 +1361,421 @@ Start typing to create your document...</div>
             { name: 'Budget.xlsx', type: 'text' }
         ];
 
-        // ==================== BOOT SEQUENCE ====================
-        function startBoot() {
-            setTimeout(() => {
-                document.getElementById('bootScreen').classList.add('hidden');
-                document.getElementById('desktop').classList.add('visible');
-                updateClock();
-                setInterval(updateClock, 60000);
-            }, 4500);
+        // ==================== 2. STATE MANAGEMENT ====================
+        const state = {
+            activeWindow: null,
+            windows: [],
+            maxZIndex: 100,
+            openApps: new Set(['finder']),
+            dockHoverIndex: -1
+        };
+
+        // ==================== 3. WINDOW MANAGER CLASS ====================
+        class WindowManager {
+            constructor() {
+                this.windows = new Map();
+                this.zIndexCounter = 100;
+            }
+
+            create(appName) {
+                const template = $(`#${appName}WindowTemplate`);
+                if (!template.length) return null;
+
+                const $window = $(template.html());
+                $window.attr('id', `${appName}Window`);
+
+                // Setup window with jQuery UI
+                this.setupDraggable($window);
+                this.setupResizable($window);
+
+                // Populate app-specific content
+                if (appName === 'finder') this.populateFinder($window);
+                if (appName === 'safari') this.setupSafari($window);
+                if (appName === 'textedit') this.setupTextEdit($window);
+
+                // Add to DOM and setup controls
+                $('#windowsLayer').append($window);
+                this.setupControls($window, appName);
+
+                this.windows.set(appName, $window);
+                return $window;
+            }
+
+            open(appName) {
+                let $window = this.windows.get(appName) || this.create(appName);
+                if (!$window) return;
+
+                if ($window.hasClass('visible')) {
+                    this.focus($window);
+                    return;
+                }
+
+                $window.addClass('visible');
+                state.windows.push($window[0]);
+                state.openApps.add(appName);
+                this.focus($window);
+                this.updateRunningIndicators();
+                this.bounceIcon(appName);
+                this.updateAppName(appName);
+            }
+
+            close($window) {
+                $window.addClass('closing');
+                setTimeout(() => {
+                    $window.removeClass('visible closing');
+                    state.windows = state.windows.filter(w => w !== $window[0]);
+                    const appName = $window.data('app');
+                    state.openApps.delete(appName);
+                    this.updateRunningIndicators();
+
+                    if (state.windows.length > 0) {
+                        this.focus($(state.windows[state.windows.length - 1]));
+                    } else {
+                        this.updateAppName('Finder');
+                    }
+                }, CONFIG.CLOSE_DURATION);
+            }
+
+            minimize($window) {
+                const appName = $window.data('app');
+                const $dockIcon = $(`.dock-icon[data-app="${appName}"]`);
+
+                if ($dockIcon.length) {
+                    const iconPos = $dockIcon.offset();
+                    const windowPos = $window.offset();
+
+                    $window.css({
+                        transition: `all ${CONFIG.MINIMIZE_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+                        transform: `scale(0.05) translate(${iconPos.left - windowPos.left}px, ${iconPos.top - windowPos.top}px)`,
+                        opacity: 0
+                    });
+
+                    setTimeout(() => {
+                        $window.removeClass('visible').css({
+                            transform: '',
+                            transition: '',
+                            opacity: ''
+                        });
+                    }, CONFIG.MINIMIZE_DURATION);
+                }
+            }
+
+            maximize($window) {
+                const isMaximized = $window.data('maximized') === 'true';
+
+                if (isMaximized) {
+                    $window.css({
+                        left: $window.data('originalLeft'),
+                        top: $window.data('originalTop'),
+                        width: $window.data('originalWidth'),
+                        height: $window.data('originalHeight')
+                    }).data('maximized', 'false');
+                } else {
+                    $window.data({
+                        originalLeft: $window.css('left'),
+                        originalTop: $window.css('top'),
+                        originalWidth: $window.css('width'),
+                        originalHeight: $window.css('height'),
+                        maximized: 'true'
+                    }).css({
+                        left: 0,
+                        top: 0,
+                        width: '100vw',
+                        height: 'calc(100vh - 28px)'
+                    });
+                }
+            }
+
+            focus($window) {
+                $('.window').removeClass('active');
+                $window.addClass('active').css('z-index', ++this.zIndexCounter);
+                state.activeWindow = $window[0];
+                this.updateAppName($window.data('app'));
+            }
+
+            setupDraggable($window) {
+                $window.draggable({
+                    handle: '.window-titlebar',
+                    containment: '#windowsLayer',
+                    start: () => this.focus($window)
+                });
+            }
+
+            setupResizable($window) {
+                $window.resizable({
+                    handles: 'n, e, s, w, ne, se, sw, nw',
+                    minWidth: CONFIG.WINDOW.MIN_WIDTH,
+                    minHeight: CONFIG.WINDOW.MIN_HEIGHT
+                });
+            }
+
+            setupControls($window, appName) {
+                $window.find('.control-close').on('click', () => this.close($window));
+                $window.find('.control-minimize').on('click', () => this.minimize($window));
+                $window.find('.control-maximize').on('click', () => this.maximize($window));
+                $window.on('mousedown', () => this.focus($window));
+            }
+
+            populateFinder($window) {
+                const $container = $window.find('#finderFiles');
+                FINDER_FILES.forEach(file => {
+                    const $item = $(`
+                        <div class="file-item" data-name="${file.name}">
+                            ${FILE_ICONS[file.type]}
+                            <div class="file-name">${file.name}</div>
+                        </div>
+                    `);
+                    $item.on('click', function() {
+                        $container.find('.file-item').removeClass('selected');
+                        $(this).addClass('selected');
+                    });
+                    $container.append($item);
+                });
+            }
+
+            setupSafari($window) {
+                const $addressBar = $window.find('.safari-address-bar');
+                const $content = $window.find('.safari-content');
+
+                $addressBar.on('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        let url = $(this).val().trim();
+                        if (url) {
+                            if (!url.startsWith('http')) url = 'https://' + url;
+                            $content.html(`<iframe class="safari-iframe" src="${url}" sandbox="allow-scripts allow-same-origin"></iframe>`);
+                        }
+                    }
+                });
+            }
+
+            setupTextEdit($window) {
+                const $content = $window.find('.textedit-content');
+
+                $window.find('.textedit-btn').on('click', function() {
+                    document.execCommand($(this).data('cmd'));
+                    $content.focus();
+                });
+
+                $content.on('input', debounce(() => {
+                    localStorage.setItem('textedit-content', $content.html());
+                }, 1000));
+
+                const saved = localStorage.getItem('textedit-content');
+                if (saved) $content.html(saved);
+            }
+
+            bounceIcon(appName) {
+                const $icon = $(`.dock-icon[data-app="${appName}"]`);
+                $icon.addClass('bouncing');
+                setTimeout(() => $icon.removeClass('bouncing'), CONFIG.BOUNCE_DURATION);
+            }
+
+            updateRunningIndicators() {
+                $('.running-indicator').hide();
+                state.openApps.forEach(app => {
+                    $(`.dock-icon[data-app="${app}"] .running-indicator`).show();
+                });
+            }
+
+            updateAppName(appName) {
+                const names = {
+                    finder: 'Finder',
+                    safari: 'Safari',
+                    textedit: 'TextEdit',
+                    mail: 'Mail'
+                };
+                $('#appName').text(names[appName] || 'Finder');
+            }
         }
 
-        // ==================== CLOCK ====================
+        // ==================== 4. BOOT SEQUENCE ====================
+        function startBoot() {
+            setTimeout(() => {
+                $('#bootScreen').addClass('hidden');
+                $('#desktop').addClass('visible');
+                updateClock();
+                setInterval(updateClock, CONFIG.CLOCK_UPDATE_INTERVAL);
+            }, CONFIG.BOOT_DURATION);
+        }
+
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
             const minutes = now.getMinutes().toString().padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             const displayHours = hours % 12 || 12;
-            document.getElementById('clock').textContent = `${displayHours}:${minutes} ${ampm}`;
+            $('#clock').text(`${displayHours}:${minutes} ${ampm}`);
         }
 
-        // ==================== WINDOW MANAGEMENT ====================
-        function createWindow(appName) {
-            const template = document.getElementById(`${appName}WindowTemplate`);
-            if (!template) return null;
-
-            const clone = template.content.cloneNode(true);
-            const window = clone.querySelector('.window');
-            window.id = `${appName}Window`;
-
-            // Populate Finder files
-            if (appName === 'finder') {
-                const filesContainer = window.querySelector('#finderFiles');
-                finderFiles.forEach(file => {
-                    const fileEl = document.createElement('div');
-                    fileEl.className = 'file-item';
-                    fileEl.dataset.name = file.name;
-                    fileEl.innerHTML = fileIcons[file.type] + `<div class="file-name">${file.name}</div>`;
-                    fileEl.addEventListener('click', function() {
-                        window.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
-                        this.classList.add('selected');
-                    });
-                    filesContainer.appendChild(fileEl);
-                });
-            }
-
-            // Safari address bar functionality
-            if (appName === 'safari') {
-                const addressBar = window.querySelector('.safari-address-bar');
-                const content = window.querySelector('.safari-content');
-                addressBar.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        let url = e.target.value.trim();
-                        if (url) {
-                            if (!url.startsWith('http')) {
-                                url = 'https://' + url;
-                            }
-                            content.innerHTML = `<iframe class="safari-iframe" src="${url}" sandbox="allow-scripts allow-same-origin"></iframe>`;
-                        }
-                    }
-                });
-            }
-
-            // TextEdit formatting
-            if (appName === 'textedit') {
-                const content = window.querySelector('.textedit-content');
-                window.querySelectorAll('.textedit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.execCommand(this.dataset.cmd);
-                        content.focus();
-                    });
-                });
-
-                // Auto-save
-                content.addEventListener('input', debounce(() => {
-                    localStorage.setItem('textedit-content', content.innerHTML);
-                }, 1000));
-
-                const saved = localStorage.getItem('textedit-content');
-                if (saved) content.innerHTML = saved;
-            }
-
-            document.getElementById('windowsLayer').appendChild(window);
-            setupWindowControls(window);
-            makeResizable(window);
-            return window;
-        }
-
-        function openWindow(appName) {
-            let window = document.getElementById(`${appName}Window`);
-
-            if (!window) {
-                window = createWindow(appName);
-            }
-
-            if (!window) return;
-
-            if (window.classList.contains('visible')) {
-                focusWindow(window);
-                return;
-            }
-
-            window.classList.add('visible');
-            state.windows.push(window);
-            state.openApps.add(appName);
-            focusWindow(window);
-            updateRunningIndicators();
-
-            // Bounce animation
-            const dockIcon = document.querySelector(`.dock-icon[data-app="${appName}"]`);
-            if (dockIcon) {
-                dockIcon.classList.add('bouncing');
-                setTimeout(() => dockIcon.classList.remove('bouncing'), 1600);
-            }
-
-            updateAppName(appName);
-        }
-
-        function closeWindow(window) {
-            window.classList.add('closing');
-            setTimeout(() => {
-                window.classList.remove('visible', 'closing');
-                state.windows = state.windows.filter(w => w !== window);
-                const appName = window.dataset.app;
-                state.openApps.delete(appName);
-                updateRunningIndicators();
-
-                if (state.windows.length > 0) {
-                    focusWindow(state.windows[state.windows.length - 1]);
-                } else {
-                    updateAppName('Finder');
-                }
-            }, 300);
-        }
-
-        function minimizeWindow(window) {
-            const appName = window.dataset.app;
-            const dockIcon = document.querySelector(`.dock-icon[data-app="${appName}"]`);
-
-            if (dockIcon) {
-                const rect = dockIcon.getBoundingClientRect();
-                const windowRect = window.getBoundingClientRect();
-
-                window.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                window.style.transform = `scale(0.05) translate(${rect.left - windowRect.left}px, ${rect.top - windowRect.top}px)`;
-                window.style.opacity = '0';
-
-                setTimeout(() => {
-                    window.classList.remove('visible');
-                    window.style.transform = '';
-                    window.style.transition = '';
-                    window.style.opacity = '';
-                }, 500);
-            }
-        }
-
-        function maximizeWindow(window) {
-            const isMaximized = window.dataset.maximized === 'true';
-
-            if (isMaximized) {
-                window.style.left = window.dataset.originalLeft;
-                window.style.top = window.dataset.originalTop;
-                window.style.width = window.dataset.originalWidth;
-                window.style.height = window.dataset.originalHeight;
-                window.dataset.maximized = 'false';
-            } else {
-                window.dataset.originalLeft = window.style.left;
-                window.dataset.originalTop = window.style.top;
-                window.dataset.originalWidth = window.style.width;
-                window.dataset.originalHeight = window.style.height;
-
-                window.style.left = '0';
-                window.style.top = '0';
-                window.style.width = '100vw';
-                window.style.height = 'calc(100vh - 28px)';
-                window.dataset.maximized = 'true';
-            }
-        }
-
-        function focusWindow(window) {
-            state.windows.forEach(w => w.classList.remove('active'));
-            window.classList.add('active');
-            window.style.zIndex = ++state.maxZIndex;
-            state.activeWindow = window;
-            updateAppName(window.dataset.app);
-        }
-
-        function updateAppName(appName) {
-            const names = {
-                'finder': 'Finder',
-                'safari': 'Safari',
-                'textedit': 'TextEdit',
-                'mail': 'Mail'
-            };
-            document.getElementById('appName').textContent = names[appName] || 'Finder';
-        }
-
-        function updateRunningIndicators() {
-            document.querySelectorAll('.running-indicator').forEach(i => i.style.display = 'none');
-
-            state.openApps.forEach(app => {
-                const icon = document.querySelector(`.dock-icon[data-app="${app}"]`);
-                if (icon) {
-                    const indicator = icon.querySelector('.running-indicator');
-                    if (indicator) indicator.style.display = 'block';
+        // ==================== 5. DOCK SYSTEM ====================
+        function setupDock() {
+            $('.dock-icon').on('click', function() {
+                const appName = $(this).data('app');
+                if (appName && appName !== 'trash') {
+                    windowManager.open(appName);
                 }
             });
-        }
 
-        // ==================== DRAG FUNCTIONALITY ====================
-        function setupWindowControls(window) {
-            const titlebar = window.querySelector('.window-titlebar');
-            const closeBtn = window.querySelector('.control-close');
-            const minimizeBtn = window.querySelector('.control-minimize');
-            const maximizeBtn = window.querySelector('.control-maximize');
-
-            closeBtn.addEventListener('click', () => closeWindow(window));
-            minimizeBtn.addEventListener('click', () => minimizeWindow(window));
-            maximizeBtn.addEventListener('click', () => maximizeWindow(window));
-
-            window.addEventListener('mousedown', () => focusWindow(window));
-
-            // Drag
-            let isDragging = false;
-            let currentX, currentY, initialX, initialY;
-
-            titlebar.addEventListener('mousedown', (e) => {
-                if (e.target.closest('.window-controls')) return;
-
-                isDragging = true;
-                initialX = e.clientX - parseInt(window.style.left || 0);
-                initialY = e.clientY - parseInt(window.style.top || 0);
-                focusWindow(window);
+            $('.dock-icon').on('mouseenter', function() {
+                const index = parseInt($(this).data('index'));
+                if (!isNaN(index)) updateDockMagnification(index);
             });
 
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
+            $('.dock-icon').on('contextmenu', function(e) {
                 e.preventDefault();
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
-                window.style.left = currentX + 'px';
-                window.style.top = Math.max(0, currentY) + 'px';
+                const $menu = $('#dockContextMenu');
+                $menu.css({ left: e.clientX, top: e.clientY })
+                     .addClass('visible')
+                     .data('app', $(this).data('app'));
             });
 
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
+            $('#dock').on('mouseleave', () => updateDockMagnification(-1));
         }
 
-        // ==================== RESIZE FUNCTIONALITY ====================
-        function makeResizable(window) {
-            const handles = window.querySelectorAll('.resize-handle');
-            handles.forEach(handle => {
-                handle.addEventListener('mousedown', initResize);
-            });
-
-            let isResizing = false;
-            let currentHandle = null;
-            let startX, startY, startWidth, startHeight, startLeft, startTop;
-
-            function initResize(e) {
-                isResizing = true;
-                currentHandle = e.target;
-                startX = e.clientX;
-                startY = e.clientY;
-                startWidth = parseInt(window.style.width);
-                startHeight = parseInt(window.style.height);
-                startLeft = parseInt(window.style.left);
-                startTop = parseInt(window.style.top);
-
-                e.stopPropagation();
-                e.preventDefault();
-
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', stopResize);
-            }
-
-            function resize(e) {
-                if (!isResizing) return;
-
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-
-                if (currentHandle.classList.contains('resize-e')) {
-                    window.style.width = Math.max(400, startWidth + dx) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-w')) {
-                    const newWidth = Math.max(400, startWidth - dx);
-                    window.style.width = newWidth + 'px';
-                    window.style.left = (startLeft + (startWidth - newWidth)) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-s')) {
-                    window.style.height = Math.max(300, startHeight + dy) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-n')) {
-                    const newHeight = Math.max(300, startHeight - dy);
-                    window.style.height = newHeight + 'px';
-                    window.style.top = (startTop + (startHeight - newHeight)) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-se')) {
-                    window.style.width = Math.max(400, startWidth + dx) + 'px';
-                    window.style.height = Math.max(300, startHeight + dy) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-sw')) {
-                    const newWidth = Math.max(400, startWidth - dx);
-                    window.style.width = newWidth + 'px';
-                    window.style.left = (startLeft + (startWidth - newWidth)) + 'px';
-                    window.style.height = Math.max(300, startHeight + dy) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-ne')) {
-                    window.style.width = Math.max(400, startWidth + dx) + 'px';
-                    const newHeight = Math.max(300, startHeight - dy);
-                    window.style.height = newHeight + 'px';
-                    window.style.top = (startTop + (startHeight - newHeight)) + 'px';
-                }
-                if (currentHandle.classList.contains('resize-nw')) {
-                    const newWidth = Math.max(400, startWidth - dx);
-                    window.style.width = newWidth + 'px';
-                    window.style.left = (startLeft + (startWidth - newWidth)) + 'px';
-                    const newHeight = Math.max(300, startHeight - dy);
-                    window.style.height = newHeight + 'px';
-                    window.style.top = (startTop + (startHeight - newHeight)) + 'px';
-                }
-            }
-
-            function stopResize() {
-                isResizing = false;
-                document.removeEventListener('mousemove', resize);
-                document.removeEventListener('mouseup', stopResize);
-            }
-        }
-
-        // ==================== DOCK MAGNIFICATION ====================
         function updateDockMagnification(hoveredIndex) {
-            const icons = document.querySelectorAll('.dock-icon');
-
-            icons.forEach((icon, index) => {
-                const iconIndex = parseInt(icon.dataset.index);
-                if (isNaN(iconIndex)) {
-                    icon.style.transform = '';
+            $('.dock-icon').each(function() {
+                const index = parseInt($(this).data('index'));
+                if (isNaN(index)) {
+                    $(this).css('transform', '');
                     return;
                 }
 
                 if (hoveredIndex === -1) {
-                    icon.style.transform = '';
+                    $(this).css('transform', '');
                 } else {
-                    const distance = Math.abs(iconIndex - hoveredIndex);
-                    let scale = 1;
-                    let translateY = 0;
+                    const distance = Math.abs(index - hoveredIndex);
+                    let scale = 1, translateY = 0;
 
                     if (distance === 0) {
-                        scale = 1.8;
+                        scale = CONFIG.DOCK_MAGNIFY.HOVER;
                         translateY = -12;
                     } else if (distance === 1) {
-                        scale = 1.4;
+                        scale = CONFIG.DOCK_MAGNIFY.ADJACENT;
                         translateY = -6;
                     } else if (distance === 2) {
-                        scale = 1.2;
+                        scale = CONFIG.DOCK_MAGNIFY.TWO_AWAY;
                         translateY = -3;
                     }
 
-                    icon.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+                    $(this).css('transform', `scale(${scale}) translateY(${translateY}px)`);
                 }
             });
         }
 
-        // ==================== DOCK INTERACTIONS ====================
-        document.querySelectorAll('.dock-icon').forEach(icon => {
-            icon.addEventListener('click', () => {
-                const appName = icon.dataset.app;
-                if (appName && appName !== 'trash') {
-                    openWindow(appName);
+        // ==================== 6. MENU BAR ====================
+        function setupMenuBar() {
+            $('#appleMenu').on('click', function(e) {
+                e.stopPropagation();
+                $('#appleMenuDropdown').toggleClass('visible');
+            });
+
+            $(document).on('click', function() {
+                $('.menu-dropdown').removeClass('visible');
+                $('.context-menu').removeClass('visible');
+            });
+
+            $('#appleMenuDropdown').on('click', function(e) {
+                e.stopPropagation();
+                if ($(e.target).text().includes('Shut Down')) {
+                    $('#desktop').removeClass('visible');
+                    $('#bootScreen').removeClass('hidden');
+                    setTimeout(() => location.reload(), 1000);
                 }
             });
+        }
 
-            icon.addEventListener('mouseenter', function() {
-                const index = parseInt(this.dataset.index);
-                if (!isNaN(index)) {
-                    updateDockMagnification(index);
-                }
-            });
+        // ==================== 7. APP IMPLEMENTATIONS ====================
+        // (App-specific logic is in WindowManager class)
 
-            icon.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                const menu = document.getElementById('dockContextMenu');
-                menu.style.left = e.clientX + 'px';
-                menu.style.top = e.clientY + 'px';
-                menu.classList.add('visible');
-                menu.dataset.app = this.dataset.app;
-            });
-        });
-
-        document.getElementById('dock').addEventListener('mouseleave', () => {
-            updateDockMagnification(-1);
-        });
-
-        // ==================== DESKTOP ICONS ====================
-        document.querySelectorAll('.desktop-icon').forEach(icon => {
-            icon.addEventListener('click', () => {
-                document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
-                icon.classList.add('selected');
-            });
-
-            icon.addEventListener('dblclick', () => {
-                const appName = icon.dataset.app;
-                if (appName) openWindow(appName);
-            });
-        });
-
-        // ==================== MENU BAR ====================
-        const appleMenu = document.getElementById('appleMenu');
-        const appleMenuDropdown = document.getElementById('appleMenuDropdown');
-
-        appleMenu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            appleMenuDropdown.classList.toggle('visible');
-        });
-
-        document.addEventListener('click', () => {
-            appleMenuDropdown.classList.remove('visible');
-            document.getElementById('contextMenu').classList.remove('visible');
-            document.getElementById('dockContextMenu').classList.remove('visible');
-        });
-
-        appleMenuDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const item = e.target.textContent;
-            if (item.includes('Shut Down')) {
-                document.getElementById('desktop').classList.remove('visible');
-                document.getElementById('bootScreen').classList.remove('hidden');
-                setTimeout(() => location.reload(), 1000);
-            }
-        });
-
-        // ==================== CONTEXT MENUS ====================
-        document.getElementById('desktop').addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            const contextMenu = document.getElementById('contextMenu');
-            contextMenu.style.left = e.clientX + 'px';
-            contextMenu.style.top = e.clientY + 'px';
-            contextMenu.classList.add('visible');
-        });
-
-        document.getElementById('dockContextMenu').addEventListener('click', (e) => {
-            e.stopPropagation();
-            const action = e.target.dataset.action;
-            const appName = e.target.closest('.context-menu').dataset.app;
-
-            if (action === 'open' && appName) {
-                openWindow(appName);
-            } else if (action === 'quit' && appName) {
-                const window = document.getElementById(`${appName}Window`);
-                if (window) closeWindow(window);
-            }
-
-            document.getElementById('dockContextMenu').classList.remove('visible');
-        });
-
-        // ==================== KEYBOARD SHORTCUTS ====================
-        document.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
-                e.preventDefault();
-                if (state.activeWindow) closeWindow(state.activeWindow);
-            }
-
-            if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
-                e.preventDefault();
-                if (state.activeWindow) minimizeWindow(state.activeWindow);
-            }
-
-            if ((e.metaKey || e.ctrlKey) && e.key === 'q') {
-                e.preventDefault();
-                if (state.activeWindow) closeWindow(state.activeWindow);
-            }
-        });
-
-        // ==================== UTILITIES ====================
+        // ==================== 8. UTILITIES ====================
         function debounce(func, wait) {
             let timeout;
-            return function executedFunction(...args) {
+            return function(...args) {
                 clearTimeout(timeout);
-                timeout = setTimeout(() => func(...args), wait);
+                timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
 
-        // ==================== INITIALIZE ====================
-        window.addEventListener('load', () => {
+        // ==================== 9. EVENT HANDLERS ====================
+        function setupDesktopIcons() {
+            $('.desktop-icon').on('click', function() {
+                $('.desktop-icon').removeClass('selected');
+                $(this).addClass('selected');
+            });
+
+            $('.desktop-icon').on('dblclick', function() {
+                const appName = $(this).data('app');
+                if (appName) windowManager.open(appName);
+            });
+        }
+
+        function setupContextMenus() {
+            $('#desktop').on('contextmenu', function(e) {
+                e.preventDefault();
+                $('#contextMenu').css({ left: e.clientX, top: e.clientY }).addClass('visible');
+            });
+
+            $('#dockContextMenu').on('click', function(e) {
+                e.stopPropagation();
+                const action = $(e.target).data('action');
+                const appName = $(this).data('app');
+
+                if (action === 'open' && appName) {
+                    windowManager.open(appName);
+                } else if (action === 'quit' && appName) {
+                    const $window = $(`#${appName}Window`);
+                    if ($window.length) windowManager.close($window);
+                }
+
+                $(this).removeClass('visible');
+            });
+        }
+
+        function setupKeyboardShortcuts() {
+            $(document).on('keydown', function(e) {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
+                    e.preventDefault();
+                    if (state.activeWindow) windowManager.close($(state.activeWindow));
+                }
+
+                if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
+                    e.preventDefault();
+                    if (state.activeWindow) windowManager.minimize($(state.activeWindow));
+                }
+
+                if ((e.metaKey || e.ctrlKey) && e.key === 'q') {
+                    e.preventDefault();
+                    if (state.activeWindow) windowManager.close($(state.activeWindow));
+                }
+            });
+        }
+
+        // ==================== 10. INITIALIZATION ====================
+        let windowManager;
+
+        $(document).ready(function() {
+            console.log('🍎 macOS Simulator - Ultimate Edition');
+            console.log('📚 Libraries loaded:');
+            console.log('  - jQuery:', $.fn.jquery);
+            console.log('  - jQuery UI:', $.ui ? $.ui.version : 'Not loaded');
+            console.log('  - Font Awesome: Loaded');
+            console.log('  - Interact.js:', typeof interact !== 'undefined' ? 'Loaded' : 'Not loaded');
+
+            // Initialize WindowManager
+            windowManager = new WindowManager();
+
+            // Setup all components
             startBoot();
+            setupDock();
+            setupMenuBar();
+            setupDesktopIcons();
+            setupContextMenus();
+            setupKeyboardShortcuts();
+
+            // Auto-open Finder after boot
             setTimeout(() => {
-                openWindow('finder');
-            }, 5000);
+                windowManager.open('finder');
+            }, CONFIG.BOOT_DURATION + CONFIG.FINDER_OPEN_DELAY);
         });
     </script>
 </body>
