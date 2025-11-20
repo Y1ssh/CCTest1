@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>macOS Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==================== 1. CSS VARIABLES ==================== */
+        :root {
+            --macos-menu-bar: rgba(246, 246, 246, 0.8);
+            --macos-dock-bg: rgba(255, 255, 255, 0.3);
+            --macos-window-bg: #ffffff;
+            --macos-sidebar: #e8e8e8;
+            --macos-blue: #007AFF;
+            --macos-red: #FF5F57;
+            --macos-yellow: #FEBC2E;
+            --macos-green: #28C840;
+            --macos-shadow: rgba(0, 0, 0, 0.2);
+            --macos-border: rgba(0, 0, 0, 0.1);
+            --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* ==================== 2. RESET & BASE ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+        }
+
+        button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* ==================== 3. BOOT SCREEN ==================== */
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .boot-screen.hidden {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        .apple-logo {
+            width: 80px;
+            height: 80px;
+            fill: #fff;
+            margin-bottom: 40px;
+            animation: logoFadeIn 1s ease-in;
+        }
+
+        .progress-bar-container {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #fff;
+            border-radius: 2px;
+            animation: progressBar 3s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes logoFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes progressBar {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+
+        /* ==================== 4. DESKTOP ==================== */
+        .desktop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .desktop.visible {
+            opacity: 1;
+        }
+
+        .desktop-icons {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .desktop-icon.selected {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .desktop-icon svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 4px;
+        }
+
+        .desktop-icon-label {
+            font-size: 12px;
+            color: #fff;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ==================== 5. MENU BAR ==================== */
+        .menu-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 28px;
+            background: var(--macos-menu-bar);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 9998;
+            font-size: 13px;
+            color: #000;
+        }
+
+        .menu-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .menu-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-item {
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-item.active {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .apple-menu-logo {
+            width: 16px;
+            height: 16px;
+        }
+
+        .app-name {
+            font-weight: 600;
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 28px;
+            left: 0;
+            min-width: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 4px 0;
+            display: none;
+            z-index: 10000;
+        }
+
+        .menu-dropdown.visible {
+            display: block;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-dropdown-item {
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-dropdown-item:hover {
+            background: var(--macos-blue);
+            color: #fff;
+        }
+
+        .menu-dropdown-separator {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 4px 0;
+        }
+
+        .system-icon {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .clock {
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        /* ==================== 6. DOCK ==================== */
+        .dock {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .dock-icon {
+            width: 48px;
+            height: 48px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dock-icon:hover {
+            transform: scale(1.3) translateY(-8px);
+        }
+
+        .dock-icon svg, .dock-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .dock-separator {
+            width: 1px;
+            height: 48px;
+            background: rgba(0, 0, 0, 0.2);
+            margin: 0 4px;
+        }
+
+        .running-indicator {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .dock-icon.bouncing {
+            animation: bounce 0.6s ease-in-out 3;
+        }
+
+        /* ==================== 7. WINDOWS ==================== */
+        .windows-layer {
+            position: fixed;
+            top: 28px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .window {
+            position: absolute;
+            background: var(--macos-window-bg);
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: none;
+            pointer-events: auto;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .window.visible {
+            display: flex;
+            flex-direction: column;
+            animation: windowOpen 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .window.closing {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .window.minimizing {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes windowOpen {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .window-titlebar {
+            height: 40px;
+            background: #f6f6f6;
+            border-bottom: 1px solid #d9d9d9;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .window.active .window-titlebar {
+            background: #ececec;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .control-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            position: relative;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        .control-btn:hover {
+            filter: brightness(0.9);
+        }
+
+        .control-close {
+            background: var(--macos-red);
+        }
+
+        .control-minimize {
+            background: var(--macos-yellow);
+        }
+
+        .control-maximize {
+            background: var(--macos-green);
+        }
+
+        .control-btn svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .window-titlebar:hover .control-btn svg {
+            opacity: 1;
+        }
+
+        .window-title {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .window-toolbar {
+            flex: 1;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow: auto;
+            background: #fff;
+        }
+
+        /* ==================== 8. FINDER APP ==================== */
+        .finder-container {
+            display: flex;
+            height: 100%;
+        }
+
+        .finder-sidebar {
+            width: 200px;
+            background: var(--macos-sidebar);
+            border-right: 1px solid var(--macos-border);
+            padding: 12px 8px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-item {
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-item.active {
+            background: var(--macos-blue);
+            color: #fff;
+        }
+
+        .finder-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .finder-toolbar {
+            height: 48px;
+            border-bottom: 1px solid var(--macos-border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+        }
+
+        .toolbar-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .finder-search {
+            margin-left: auto;
+            padding: 6px 12px;
+            border: 1px solid var(--macos-border);
+            border-radius: 6px;
+            font-size: 13px;
+            width: 200px;
+        }
+
+        .finder-files {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            align-content: start;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .file-item.selected {
+            background: rgba(0, 122, 255, 0.1);
+        }
+
+        .file-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .file-name {
+            font-size: 12px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        /* ==================== 9. SAFARI APP ==================== */
+        .safari-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .safari-tabs {
+            display: flex;
+            background: #e8e8e8;
+            border-bottom: 1px solid var(--macos-border);
+            padding: 8px 8px 0;
+            gap: 4px;
+        }
+
+        .safari-tab {
+            padding: 6px 12px;
+            background: #d0d0d0;
+            border-radius: 6px 6px 0 0;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .safari-tab.active {
+            background: #fff;
+        }
+
+        .safari-toolbar {
+            height: 48px;
+            background: #fff;
+            border-bottom: 1px solid var(--macos-border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+        }
+
+        .safari-nav-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .safari-address-bar {
+            flex: 1;
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: 1px solid var(--macos-border);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .safari-content {
+            flex: 1;
+            background: #fff;
+            overflow: auto;
+        }
+
+        .safari-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .safari-default-page {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .safari-default-page h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .safari-favorites {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        .safari-favorite {
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .safari-favorite:hover {
+            background: #f0f0f0;
+        }
+
+        /* ==================== 10. TEXTEDIT APP ==================== */
+        .textedit-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .textedit-toolbar {
+            height: 44px;
+            border-bottom: 1px solid var(--macos-border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .textedit-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .textedit-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .textedit-select {
+            padding: 6px 10px;
+            border: 1px solid var(--macos-border);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .textedit-content {
+            flex: 1;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow: auto;
+            outline: none;
+        }
+
+        /* ==================== 11. CONTEXT MENU ==================== */
+        .context-menu {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 4px 0;
+            min-width: 200px;
+            z-index: 10001;
+            display: none;
+        }
+
+        .context-menu.visible {
+            display: block;
+            animation: contextMenuAppear 0.2s ease-out;
+        }
+
+        @keyframes contextMenuAppear {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .context-menu-item {
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .context-menu-item:hover {
+            background: var(--macos-blue);
+            color: #fff;
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 4px 0;
+        }
+
+        /* ==================== 12. UTILITIES ==================== */
+        .hidden {
+            display: none !important;
+        }
+
+        .no-select {
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== BOOT SCREEN ==================== -->
+    <div class="boot-screen" id="bootScreen">
+        <svg class="apple-logo" viewBox="0 0 24 24">
+            <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"/>
+        </svg>
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- ==================== DESKTOP ==================== -->
+    <div class="desktop" id="desktop">
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="desktop-icon" data-app="finder">
+                <svg viewBox="0 0 24 24" fill="#3B82F6">
+                    <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
+                </svg>
+                <div class="desktop-icon-label">Documents</div>
+            </div>
+            <div class="desktop-icon" data-app="finder">
+                <svg viewBox="0 0 24 24" fill="#EF4444">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                </svg>
+                <div class="desktop-icon-label">Photos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MENU BAR ==================== -->
+    <div class="menu-bar" id="menuBar">
+        <div class="menu-bar-left">
+            <div class="menu-item" id="appleMenu">
+                <svg class="apple-menu-logo" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"/>
+                </svg>
+                <div class="menu-dropdown" id="appleMenuDropdown">
+                    <div class="menu-dropdown-item">About This Mac</div>
+                    <div class="menu-dropdown-separator"></div>
+                    <div class="menu-dropdown-item">System Preferences...</div>
+                    <div class="menu-dropdown-item">App Store...</div>
+                    <div class="menu-dropdown-separator"></div>
+                    <div class="menu-dropdown-item">Sleep</div>
+                    <div class="menu-dropdown-item">Restart...</div>
+                    <div class="menu-dropdown-item">Shut Down...</div>
+                </div>
+            </div>
+            <div class="app-name" id="appName">Finder</div>
+            <div class="menu-item">File</div>
+            <div class="menu-item">Edit</div>
+            <div class="menu-item">View</div>
+            <div class="menu-item">Go</div>
+            <div class="menu-item">Window</div>
+            <div class="menu-item">Help</div>
+        </div>
+        <div class="menu-bar-right">
+            <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+            </svg>
+            <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM13 18h-2v-2h2v2zm0-4h-2V9h2v5z"/>
+            </svg>
+            <div class="clock" id="clock">12:00 PM</div>
+        </div>
+    </div>
+
+    <!-- ==================== DOCK ==================== -->
+    <div class="dock" id="dock">
+        <div class="dock-icon" data-app="finder" title="Finder">
+            <svg viewBox="0 0 24 24" fill="#3B82F6">
+                <rect width="24" height="24" rx="4" fill="#3B82F6"/>
+                <path d="M8 7h4v2H8V7zm0 4h8v2H8v-2zm0 4h6v2H8v-2z" fill="white"/>
+            </svg>
+            <div class="running-indicator"></div>
+        </div>
+        <div class="dock-icon" data-app="safari" title="Safari">
+            <svg viewBox="0 0 24 24" fill="#0EA5E9">
+                <rect width="24" height="24" rx="4" fill="#0EA5E9"/>
+                <circle cx="12" cy="12" r="6" stroke="white" stroke-width="1.5" fill="none"/>
+                <path d="M12 6v12M6 12h12" stroke="white" stroke-width="1"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="textedit" title="TextEdit">
+            <svg viewBox="0 0 24 24" fill="#FBBF24">
+                <rect width="24" height="24" rx="4" fill="#FBBF24"/>
+                <path d="M7 17h10M7 13h10M7 9h10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="mail" title="Mail">
+            <svg viewBox="0 0 24 24" fill="#3B82F6">
+                <rect width="24" height="24" rx="4" fill="#3B82F6"/>
+                <path d="M4 8l8 5 8-5v8H4V8z" fill="white"/>
+            </svg>
+        </div>
+        <div class="dock-separator"></div>
+        <div class="dock-icon" data-app="trash" title="Trash">
+            <svg viewBox="0 0 24 24" fill="#94A3B8">
+                <rect width="24" height="24" rx="4" fill="#94A3B8"/>
+                <path d="M9 3v2h6V3h2v2h2v2H5V5h2V3h2zm-2 6h10v10H7V9z" fill="white"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ==================== WINDOWS LAYER ==================== -->
+    <div class="windows-layer" id="windowsLayer">
+        <!-- Finder Window -->
+        <div class="window" id="finderWindow" data-app="finder" style="width: 800px; height: 500px; left: 100px; top: 80px;">
+            <div class="window-titlebar">
+                <div class="window-controls">
+                    <button class="control-btn control-close">
+                        <svg viewBox="0 0 6 6" fill="none">
+                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="control-btn control-minimize">
+                        <svg viewBox="0 0 8 2" fill="none">
+                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="control-btn control-maximize">
+                        <svg viewBox="0 0 6 6" fill="none">
+                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="window-title">Finder</div>
+            </div>
+            <div class="window-content">
+                <div class="finder-container">
+                    <div class="finder-sidebar">
+                        <div class="sidebar-section">
+                            <div class="sidebar-title">Favorites</div>
+                            <div class="sidebar-item active">📁 Recent</div>
+                            <div class="sidebar-item">🚀 Applications</div>
+                            <div class="sidebar-item">🖥️ Desktop</div>
+                            <div class="sidebar-item">📄 Documents</div>
+                            <div class="sidebar-item">⬇️ Downloads</div>
+                        </div>
+                        <div class="sidebar-section">
+                            <div class="sidebar-title">Locations</div>
+                            <div class="sidebar-item">💾 Macintosh HD</div>
+                            <div class="sidebar-item">☁️ iCloud Drive</div>
+                            <div class="sidebar-item">🌐 Network</div>
+                        </div>
+                    </div>
+                    <div class="finder-content">
+                        <div class="finder-toolbar">
+                            <button class="toolbar-btn">← →</button>
+                            <button class="toolbar-btn">⚙️</button>
+                            <button class="toolbar-btn">Share</button>
+                            <input type="text" class="finder-search" placeholder="Search">
+                        </div>
+                        <div class="finder-files" id="finderFiles">
+                            <div class="file-item" data-name="Documents">
+                                <div class="file-icon">📁</div>
+                                <div class="file-name">Documents</div>
+                            </div>
+                            <div class="file-item" data-name="Photos">
+                                <div class="file-icon">🖼️</div>
+                                <div class="file-name">Photos</div>
+                            </div>
+                            <div class="file-item" data-name="Resume.pdf">
+                                <div class="file-icon">📄</div>
+                                <div class="file-name">Resume.pdf</div>
+                            </div>
+                            <div class="file-item" data-name="Vacation.jpg">
+                                <div class="file-icon">🏖️</div>
+                                <div class="file-name">Vacation.jpg</div>
+                            </div>
+                            <div class="file-item" data-name="Music">
+                                <div class="file-icon">🎵</div>
+                                <div class="file-name">Music</div>
+                            </div>
+                            <div class="file-item" data-name="Videos">
+                                <div class="file-icon">🎬</div>
+                                <div class="file-name">Videos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safari Window -->
+        <div class="window" id="safariWindow" data-app="safari" style="width: 900px; height: 600px; left: 150px; top: 100px;">
+            <div class="window-titlebar">
+                <div class="window-controls">
+                    <button class="control-btn control-close">
+                        <svg viewBox="0 0 6 6" fill="none">
+                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="control-btn control-minimize">
+                        <svg viewBox="0 0 8 2" fill="none">
+                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="control-btn control-maximize">
+                        <svg viewBox="0 0 6 6" fill="none">
+                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="window-title">Safari</div>
+            </div>
+            <div class="window-content">
+                <div class="safari-container">
+                    <div class="safari-tabs">
+                        <div class="safari-tab active">Start Page</div>
+                        <button class="toolbar-btn">+</button>
+                    </div>
+                    <div class="safari-toolbar">
+                        <div class="safari-nav-btns">
+                            <button class="toolbar-btn">←</button>
+                            <button class="toolbar-btn">→</button>
+                        </div>
+                        <input type="text" class="safari-address-bar" placeholder="Search or enter website" value="">
+                        <button class="toolbar-btn">⭐</button>
+                        <button class="toolbar-btn">📋</button>
+                    </div>
+                    <div class="safari-content">
+                        <div class="safari-default-page">
+                            <h1>🧭 Safari</h1>
+                            <p style="color: #666; margin-bottom: 20px;">Your window to the web</p>
+                            <div class="safari-favorites">
+                                <div class="safari-favorite">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+                                    <div>Google</div>
+                                </div>
+                                <div class="safari-favorite">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">📰</div>
+                                    <div>News</div>
+                                </div>
+                                <div class="safari-favorite">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🎬</div>
+                                    <div>YouTube</div>
+                                </div>
+                                <div class="safari-favorite">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🐙</div>
+                                    <div>GitHub</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TextEdit Window -->
+        <div class="window" id="texteditWindow" data-app="textedit" style="width: 700px; height: 500px; left: 200px; top: 120px;">
+            <div class="window-titlebar">
+                <div class="window-controls">
+                    <button class="control-btn control-close">
+                        <svg viewBox="0 0 6 6" fill="none">
+                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="control-btn control-minimize">
+                        <svg viewBox="0 0 8 2" fill="none">
+                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button class="control-btn control-maximize">
+                        <svg viewBox="0 0 6 6" fill="none">
+                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="window-title">Untitled</div>
+            </div>
+            <div class="window-content">
+                <div class="textedit-container">
+                    <div class="textedit-toolbar">
+                        <button class="textedit-btn" id="boldBtn"><b>B</b></button>
+                        <button class="textedit-btn" id="italicBtn"><i>I</i></button>
+                        <button class="textedit-btn" id="underlineBtn"><u>U</u></button>
+                        <select class="textedit-select">
+                            <option>Inter</option>
+                            <option>Helvetica</option>
+                            <option>Times New Roman</option>
+                        </select>
+                        <select class="textedit-select">
+                            <option>12px</option>
+                            <option>14px</option>
+                            <option selected>16px</option>
+                            <option>18px</option>
+                            <option>24px</option>
+                        </select>
+                    </div>
+                    <div class="textedit-content" contenteditable="true" id="textEditContent">
+Welcome to TextEdit!
+
+This is a simple text editor where you can type and format text. Try using the toolbar buttons above to style your text.
+
+You can:
+• Bold text
+• Italicize text
+• Underline text
+• Change fonts
+• Adjust sizes
+
+Start typing to create your document...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CONTEXT MENU ==================== -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item">New Folder</div>
+        <div class="context-menu-item">Get Info</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item">Change Desktop Background...</div>
+        <div class="context-menu-item">Use Stacks</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item">Show View Options</div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        const state = {
+            activeWindow: null,
+            windows: [],
+            maxZIndex: 100,
+            openApps: new Set(['finder'])
+        };
+
+        // ==================== BOOT SEQUENCE ====================
+        function startBoot() {
+            setTimeout(() => {
+                document.getElementById('bootScreen').classList.add('hidden');
+                document.getElementById('desktop').classList.add('visible');
+                updateClock();
+                setInterval(updateClock, 60000);
+            }, 4500);
+        }
+
+        // ==================== CLOCK ====================
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            document.getElementById('clock').textContent = `${displayHours}:${minutes} ${ampm}`;
+        }
+
+        // ==================== WINDOW MANAGEMENT ====================
+        function openWindow(appName) {
+            const windowId = `${appName}Window`;
+            const window = document.getElementById(windowId);
+
+            if (!window) return;
+
+            // If already open, just focus it
+            if (window.classList.contains('visible')) {
+                focusWindow(window);
+                return;
+            }
+
+            window.classList.add('visible');
+            state.windows.push(window);
+            state.openApps.add(appName);
+            focusWindow(window);
+            updateRunningIndicators();
+
+            // Add bounce animation to dock icon
+            const dockIcon = document.querySelector(`.dock-icon[data-app="${appName}"]`);
+            if (dockIcon) {
+                dockIcon.classList.add('bouncing');
+                setTimeout(() => dockIcon.classList.remove('bouncing'), 1800);
+            }
+
+            // Update menu bar app name
+            updateAppName(appName);
+        }
+
+        function closeWindow(window) {
+            window.classList.add('closing');
+            setTimeout(() => {
+                window.classList.remove('visible', 'closing');
+                state.windows = state.windows.filter(w => w !== window);
+                const appName = window.dataset.app;
+                state.openApps.delete(appName);
+                updateRunningIndicators();
+
+                // Focus next window or default to Finder
+                if (state.windows.length > 0) {
+                    focusWindow(state.windows[state.windows.length - 1]);
+                } else {
+                    updateAppName('Finder');
+                }
+            }, 300);
+        }
+
+        function minimizeWindow(window) {
+            const appName = window.dataset.app;
+            const dockIcon = document.querySelector(`.dock-icon[data-app="${appName}"]`);
+
+            if (dockIcon) {
+                const rect = dockIcon.getBoundingClientRect();
+                const windowRect = window.getBoundingClientRect();
+
+                window.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                window.style.transform = `scale(0.1) translate(${rect.left - windowRect.left}px, ${rect.top - windowRect.top}px)`;
+                window.style.opacity = '0';
+
+                setTimeout(() => {
+                    window.classList.remove('visible');
+                    window.style.transform = '';
+                    window.style.transition = '';
+                    window.style.opacity = '';
+                }, 400);
+            }
+        }
+
+        function maximizeWindow(window) {
+            const isMaximized = window.dataset.maximized === 'true';
+
+            if (isMaximized) {
+                window.style.left = window.dataset.originalLeft;
+                window.style.top = window.dataset.originalTop;
+                window.style.width = window.dataset.originalWidth;
+                window.style.height = window.dataset.originalHeight;
+                window.dataset.maximized = 'false';
+            } else {
+                window.dataset.originalLeft = window.style.left;
+                window.dataset.originalTop = window.style.top;
+                window.dataset.originalWidth = window.style.width;
+                window.dataset.originalHeight = window.style.height;
+
+                window.style.left = '0';
+                window.style.top = '0';
+                window.style.width = '100vw';
+                window.style.height = 'calc(100vh - 28px)';
+                window.dataset.maximized = 'true';
+            }
+        }
+
+        function focusWindow(window) {
+            state.windows.forEach(w => w.classList.remove('active'));
+            window.classList.add('active');
+            window.style.zIndex = ++state.maxZIndex;
+            state.activeWindow = window;
+            updateAppName(window.dataset.app);
+        }
+
+        function updateAppName(appName) {
+            const names = {
+                'finder': 'Finder',
+                'safari': 'Safari',
+                'textedit': 'TextEdit',
+                'mail': 'Mail'
+            };
+            document.getElementById('appName').textContent = names[appName] || 'Finder';
+        }
+
+        function updateRunningIndicators() {
+            document.querySelectorAll('.running-indicator').forEach(indicator => {
+                indicator.style.display = 'none';
+            });
+
+            state.openApps.forEach(app => {
+                const dockIcon = document.querySelector(`.dock-icon[data-app="${app}"]`);
+                if (dockIcon) {
+                    const indicator = dockIcon.querySelector('.running-indicator');
+                    if (indicator) indicator.style.display = 'block';
+                }
+            });
+        }
+
+        // ==================== DRAG FUNCTIONALITY ====================
+        function makeDraggable(window) {
+            const titlebar = window.querySelector('.window-titlebar');
+            let isDragging = false;
+            let currentX, currentY, initialX, initialY;
+
+            titlebar.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.window-controls')) return;
+
+                isDragging = true;
+                initialX = e.clientX - parseInt(window.style.left || 0);
+                initialY = e.clientY - parseInt(window.style.top || 0);
+
+                focusWindow(window);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+
+                window.style.left = currentX + 'px';
+                window.style.top = Math.max(0, currentY) + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+
+        // ==================== DOCK INTERACTIONS ====================
+        document.querySelectorAll('.dock-icon').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const appName = icon.dataset.app;
+                if (appName && appName !== 'trash') {
+                    openWindow(appName);
+                }
+            });
+        });
+
+        // ==================== DESKTOP ICONS ====================
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            icon.addEventListener('click', () => {
+                document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+                icon.classList.add('selected');
+            });
+
+            icon.addEventListener('dblclick', () => {
+                const appName = icon.dataset.app;
+                if (appName) {
+                    openWindow(appName);
+                }
+            });
+        });
+
+        // ==================== WINDOW CONTROLS ====================
+        document.querySelectorAll('.window').forEach(window => {
+            const closeBtn = window.querySelector('.control-close');
+            const minimizeBtn = window.querySelector('.control-minimize');
+            const maximizeBtn = window.querySelector('.control-maximize');
+
+            closeBtn.addEventListener('click', () => closeWindow(window));
+            minimizeBtn.addEventListener('click', () => minimizeWindow(window));
+            maximizeBtn.addEventListener('click', () => maximizeWindow(window));
+
+            window.addEventListener('mousedown', () => focusWindow(window));
+
+            makeDraggable(window);
+        });
+
+        // ==================== MENU BAR ====================
+        const appleMenu = document.getElementById('appleMenu');
+        const appleMenuDropdown = document.getElementById('appleMenuDropdown');
+
+        appleMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            appleMenuDropdown.classList.toggle('visible');
+        });
+
+        document.addEventListener('click', () => {
+            appleMenuDropdown.classList.remove('visible');
+            document.getElementById('contextMenu').classList.remove('visible');
+        });
+
+        appleMenuDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const item = e.target.textContent;
+            if (item.includes('Shut Down')) {
+                document.getElementById('desktop').classList.remove('visible');
+                document.getElementById('bootScreen').classList.remove('hidden');
+                setTimeout(() => location.reload(), 1000);
+            }
+        });
+
+        // ==================== CONTEXT MENU ====================
+        document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.left = e.clientX + 'px';
+            contextMenu.style.top = e.clientY + 'px';
+            contextMenu.classList.add('visible');
+        });
+
+        // ==================== TEXTEDIT FORMATTING ====================
+        document.getElementById('boldBtn').addEventListener('click', () => {
+            document.execCommand('bold');
+            document.getElementById('textEditContent').focus();
+        });
+
+        document.getElementById('italicBtn').addEventListener('click', () => {
+            document.execCommand('italic');
+            document.getElementById('textEditContent').focus();
+        });
+
+        document.getElementById('underlineBtn').addEventListener('click', () => {
+            document.execCommand('underline');
+            document.getElementById('textEditContent').focus();
+        });
+
+        // ==================== FINDER FILE SELECTION ====================
+        document.querySelectorAll('.file-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+        });
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + W - Close window
+            if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
+                e.preventDefault();
+                if (state.activeWindow) {
+                    closeWindow(state.activeWindow);
+                }
+            }
+
+            // Cmd/Ctrl + M - Minimize window
+            if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
+                e.preventDefault();
+                if (state.activeWindow) {
+                    minimizeWindow(state.activeWindow);
+                }
+            }
+
+            // Cmd/Ctrl + Q - Quit app (close window)
+            if ((e.metaKey || e.ctrlKey) && e.key === 'q') {
+                e.preventDefault();
+                if (state.activeWindow) {
+                    closeWindow(state.activeWindow);
+                }
+            }
+        });
+
+        // ==================== SAFARI ADDRESS BAR ====================
+        const safariAddressBar = document.querySelector('.safari-address-bar');
+        if (safariAddressBar) {
+            safariAddressBar.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const url = e.target.value;
+                    // In a real implementation, you'd load the URL
+                    console.log('Navigate to:', url);
+                }
+            });
+        }
+
+        // ==================== AUTO-SAVE TEXTEDIT ====================
+        const textEditContent = document.getElementById('textEditContent');
+        if (textEditContent) {
+            textEditContent.addEventListener('input', debounce(() => {
+                localStorage.setItem('textedit-content', textEditContent.innerHTML);
+            }, 1000));
+
+            // Load saved content
+            const savedContent = localStorage.getItem('textedit-content');
+            if (savedContent) {
+                textEditContent.innerHTML = savedContent;
+            }
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ==================== INITIALIZE ====================
+        window.addEventListener('load', () => {
+            startBoot();
+            // Open Finder by default after boot
+            setTimeout(() => {
+                openWindow('finder');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
