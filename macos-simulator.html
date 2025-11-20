@@ -187,11 +187,29 @@
             }
         }
 
+        /**
+         * Realistic Boot Progress - Simulates actual macOS driver loading
+         * Pauses at key points: 20% (kernel), 60% (drivers), 85% (services)
+         */
         @keyframes progressFill {
             0% { width: 0%; }
-            20% { width: 30%; }
-            50% { width: 65%; }
+            /* Fast initial kernel load */
+            10% { width: 15%; }
+            /* PAUSE at 20% - Loading kernel extensions */
+            20% { width: 20%; }
+            25% { width: 20%; }
+            /* Jump to driver loading */
+            35% { width: 45%; }
+            /* PAUSE at 60% - Loading system drivers */
+            50% { width: 60%; }
+            55% { width: 60%; }
+            /* Quick progress through services */
+            65% { width: 75%; }
+            /* PAUSE at 85% - Starting services */
+            75% { width: 85%; }
             80% { width: 85%; }
+            /* Final push to completion */
+            95% { width: 98%; }
             100% { width: 100%; }
         }
 
@@ -3407,6 +3425,107 @@ Start typing to create your document...</div>
             return $window;
         }
 
+        // ==================== 2.9. SPRING PHYSICS CLASS ====================
+
+        /**
+         * Spring Physics - Natural bouncy animations
+         * Based on spring-mass-damper system for realistic motion
+         */
+        class Spring {
+            constructor(options = {}) {
+                this.stiffness = options.stiffness || 170; // Higher = stiffer spring
+                this.damping = options.damping || 26; // Higher = less oscillation
+                this.mass = options.mass || 1; // Higher = slower movement
+                this.initialVelocity = options.initialVelocity || 0;
+
+                this.currentValue = options.from || 0;
+                this.targetValue = options.to || 1;
+                this.currentVelocity = this.initialVelocity;
+
+                this.precision = 0.01; // Stop when close enough
+                this.isAnimating = false;
+                this.animationFrame = null;
+                this.onUpdate = options.onUpdate || (() => {});
+                this.onComplete = options.onComplete || (() => {});
+            }
+
+            // Update target and start animating
+            setTarget(newTarget) {
+                this.targetValue = newTarget;
+                if (!this.isAnimating) {
+                    this.start();
+                }
+            }
+
+            // Start spring animation
+            start() {
+                this.isAnimating = true;
+                this.lastTime = performance.now();
+                this.animate();
+            }
+
+            // Animation loop using spring physics
+            animate() {
+                if (!this.isAnimating) return;
+
+                const currentTime = performance.now();
+                const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.064); // Cap at 64ms
+                this.lastTime = currentTime;
+
+                // Spring physics calculations
+                const displacement = this.currentValue - this.targetValue;
+                const springForce = -this.stiffness * displacement;
+                const dampingForce = -this.damping * this.currentVelocity;
+                const acceleration = (springForce + dampingForce) / this.mass;
+
+                // Update velocity and position
+                this.currentVelocity += acceleration * deltaTime;
+                this.currentValue += this.currentVelocity * deltaTime;
+
+                // Check if spring has settled
+                const isSettled =
+                    Math.abs(displacement) < this.precision &&
+                    Math.abs(this.currentVelocity) < this.precision;
+
+                if (isSettled) {
+                    this.currentValue = this.targetValue;
+                    this.currentVelocity = 0;
+                    this.isAnimating = false;
+                    this.onUpdate(this.currentValue);
+                    this.onComplete();
+                    return;
+                }
+
+                // Trigger update callback
+                this.onUpdate(this.currentValue);
+
+                // Continue animation
+                this.animationFrame = requestAnimationFrame(() => this.animate());
+            }
+
+            // Stop animation
+            stop() {
+                this.isAnimating = false;
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                    this.animationFrame = null;
+                }
+            }
+
+            // Reset to initial state
+            reset(from = 0, to = 1) {
+                this.stop();
+                this.currentValue = from;
+                this.targetValue = to;
+                this.currentVelocity = this.initialVelocity;
+            }
+
+            // Get current value
+            getValue() {
+                return this.currentValue;
+            }
+        }
+
         // ==================== 3. WINDOW MANAGER CLASS ====================
         class WindowManager {
             constructor() {
@@ -3634,30 +3753,120 @@ Start typing to create your document...</div>
                 }
             }
 
+            /**
+             * Smart Z-Indexing - Auto-calculate maxZIndex from all windows
+             * Ensures clicked window is always on top
+             */
             focus($window) {
                 // Remove active from all windows and add inactive
                 $('.window.visible').removeClass('active').addClass('inactive');
 
-                // Add active to this window
-                $window.removeClass('inactive').addClass('active').css('z-index', ++this.zIndexCounter);
+                // SMART Z-INDEX CALCULATION
+                // Find the current maximum z-index of all windows
+                let maxZ = 100;
+                $('.window.visible').each(function() {
+                    const currentZ = parseInt($(this).css('z-index')) || 100;
+                    if (currentZ > maxZ) maxZ = currentZ;
+                });
+
+                // Set this window's z-index to maxZ + 1
+                const newZIndex = maxZ + 1;
+                $window.removeClass('inactive').addClass('active').css('z-index', newZIndex);
+
+                // Update global maxZIndex in store
+                store.state.maxZIndex = newZIndex;
+                this.zIndexCounter = newZIndex;
 
                 this.activeWindow = $window[0];
                 this.updateAppName($window.data('app'));
             }
 
+            /**
+             * GPU-Accelerated Dragging using transform: translate3d
+             * Much smoother than jQuery UI's top/left approach (CPU-based)
+             */
             setupDraggable($window) {
-                $window.draggable({
-                    handle: '.window-titlebar',
-                    containment: '#windowsLayer',
-                    start: () => {
-                        this.focus($window);
-                        // GOD LEVEL FIX: Disable pointer-events on iframes while dragging
-                        // This prevents iframes (like Safari) from stealing mouse events
-                        $('body').addClass('window-dragging-active');
-                    },
-                    stop: () => {
-                        $('body').removeClass('window-dragging-active');
+                const $handle = $window.find('.window-titlebar');
+                let isDragging = false;
+                let startX, startY;
+                let initialX = 0, initialY = 0;
+                let currentX = 0, currentY = 0;
+
+                // Get initial position from CSS or calculate
+                const initialPos = $window.position();
+                initialX = initialPos.left;
+                initialY = initialPos.top;
+
+                $handle.on('mousedown', (e) => {
+                    if ($(e.target).closest('.traffic-btn').length) return; // Don't drag on buttons
+
+                    isDragging = true;
+                    this.focus($window);
+
+                    // GOD LEVEL FIX: Iframe shield
+                    $('body').addClass('window-dragging-active');
+
+                    startX = e.clientX - currentX;
+                    startY = e.clientY - currentY;
+
+                    $window.addClass('dragging');
+                    e.preventDefault();
+                });
+
+                $(document).on('mousemove', (e) => {
+                    if (!isDragging) return;
+
+                    // Calculate new position
+                    currentX = e.clientX - startX;
+                    currentY = e.clientY - startY;
+
+                    // Apply boundaries (containment)
+                    const windowsLayer = document.getElementById('windowsLayer');
+                    const layerRect = windowsLayer.getBoundingClientRect();
+                    const windowRect = $window[0].getBoundingClientRect();
+
+                    const minX = -initialX;
+                    const minY = 28 - initialY; // Account for menu bar
+                    const maxX = layerRect.width - windowRect.width - initialX;
+                    const maxY = layerRect.height - windowRect.height - initialY;
+
+                    currentX = Math.max(minX, Math.min(currentX, maxX));
+                    currentY = Math.max(minY, Math.min(currentY, maxY));
+
+                    // GPU-ACCELERATED: Use translate3d instead of top/left
+                    $window.css('transform', `translate3d(${currentX}px, ${currentY}px, 0)`);
+                });
+
+                $(document).on('mouseup', () => {
+                    if (!isDragging) return;
+
+                    isDragging = false;
+                    $('body').removeClass('window-dragging-active');
+                    $window.removeClass('dragging');
+
+                    // Save final position to store
+                    const appName = $window.data('app');
+                    const finalX = initialX + currentX;
+                    const finalY = initialY + currentY;
+
+                    if (!store.state.windowPositions[appName]) {
+                        store.state.windowPositions[appName] = {};
                     }
+                    store.state.windowPositions[appName].x = finalX;
+                    store.state.windowPositions[appName].y = finalY;
+
+                    // Update initial position for next drag
+                    initialX = finalX;
+                    initialY = finalY;
+                    currentX = 0;
+                    currentY = 0;
+
+                    // Reset transform, update CSS position
+                    $window.css({
+                        'transform': 'translate3d(0, 0, 0)',
+                        'left': finalX + 'px',
+                        'top': finalY + 'px'
+                    });
                 });
             }
 
@@ -3715,19 +3924,126 @@ Start typing to create your document...</div>
                 finderRenderContents();
             }
 
+            /**
+             * Safari with Tab Support
+             * Full tab switching UI with predefined sites
+             */
             setupSafari($window) {
                 const $addressBar = $window.find('.safari-address-bar');
                 const $content = $window.find('.safari-content');
+                const $tabsContainer = $window.find('.safari-tabs');
 
-                $addressBar.on('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        let url = $(this).val().trim();
-                        if (url) {
-                            if (!url.startsWith('http')) url = 'https://' + url;
-                            $content.html(`<iframe class="safari-iframe" src="${url}" sandbox="allow-scripts allow-same-origin"></iframe>`);
+                // Tab data structure
+                const tabs = [
+                    { id: 1, title: 'Start Page', url: '', active: true }
+                ];
+                let tabIdCounter = 1;
+
+                // Predefined sites for easy access
+                const quickSites = {
+                    'wikipedia': 'https://en.wikipedia.org',
+                    'github': 'https://github.com',
+                    'youtube': 'https://youtube.com',
+                    'stackoverflow': 'https://stackoverflow.com'
+                };
+
+                // Render tabs UI
+                function renderTabs() {
+                    const activeTab = tabs.find(t => t.active);
+                    $tabsContainer.find('.safari-tab').remove();
+
+                    tabs.forEach(tab => {
+                        const $tab = $(`
+                            <div class="safari-tab ${tab.active ? 'active' : ''}" data-tab-id="${tab.id}">
+                                <span class="tab-title">${tab.title}</span>
+                                <button class="tab-close" title="Close tab">×</button>
+                            </div>
+                        `);
+
+                        $tab.find('.tab-close').on('click', (e) => {
+                            e.stopPropagation();
+                            closeTab(tab.id);
+                        });
+
+                        $tab.on('click', () => switchTab(tab.id));
+                        $tabsContainer.prepend($tab);
+                    });
+
+                    // Update address bar and content
+                    if (activeTab) {
+                        $addressBar.val(activeTab.url);
+                        if (activeTab.url) {
+                            $content.html(`<iframe class="safari-iframe" src="${activeTab.url}" sandbox="allow-scripts allow-same-origin"></iframe>`);
+                        } else {
+                            $content.html('<div style="padding: 40px; text-align: center;"><h2>Start Page</h2><p>Enter a URL or try: wikipedia, github, youtube, stackoverflow</p></div>');
                         }
                     }
+                }
+
+                // Switch to tab
+                function switchTab(tabId) {
+                    tabs.forEach(t => t.active = (t.id === tabId));
+                    renderTabs();
+                }
+
+                // Close tab
+                function closeTab(tabId) {
+                    const index = tabs.findIndex(t => t.id === tabId);
+                    if (index === -1 || tabs.length === 1) return; // Keep at least one tab
+
+                    const wasActive = tabs[index].active;
+                    tabs.splice(index, 1);
+
+                    // If closed tab was active, activate another
+                    if (wasActive && tabs.length > 0) {
+                        tabs[Math.max(0, index - 1)].active = true;
+                    }
+
+                    renderTabs();
+                }
+
+                // Add new tab
+                function addTab() {
+                    tabs.forEach(t => t.active = false);
+                    tabs.push({
+                        id: ++tabIdCounter,
+                        title: 'New Tab',
+                        url: '',
+                        active: true
+                    });
+                    renderTabs();
+                }
+
+                // Navigate to URL
+                function navigate(url) {
+                    const activeTab = tabs.find(t => t.active);
+                    if (!activeTab) return;
+
+                    // Check for quick site shortcuts
+                    if (quickSites[url.toLowerCase()]) {
+                        url = quickSites[url.toLowerCase()];
+                    } else if (!url.startsWith('http')) {
+                        url = 'https://' + url;
+                    }
+
+                    activeTab.url = url;
+                    activeTab.title = new URL(url).hostname;
+                    renderTabs();
+                }
+
+                // Event: Enter URL
+                $addressBar.on('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const url = $(this).val().trim();
+                        if (url) navigate(url);
+                    }
                 });
+
+                // Event: New tab button (already in HTML)
+                $window.find('.safari-tabs .toolbar-btn').on('click', addTab);
+
+                // Initial render
+                renderTabs();
             }
 
             setupTextEdit($window) {
@@ -4789,12 +5105,20 @@ Thank you for exploring!`,
             $('#menubarClock').text(formatted);
         }
 
+        /**
+         * Real Battery API Integration
+         * Uses navigator.getBattery() for actual laptop battery level
+         */
         async function updateBattery() {
             if ('getBattery' in navigator) {
                 try {
                     const battery = await navigator.getBattery();
                     const level = Math.round(battery.level * 100);
                     const charging = battery.charging;
+
+                    // Update store (for potential other uses)
+                    store.state.battery = level;
+                    store.state.charging = charging;
 
                     $('#batteryPercent').text(level + '%');
 
@@ -4814,16 +5138,21 @@ Thank you for exploring!`,
 
                     $('#batteryIcon').attr('class', `fas ${icon}`);
 
-                    // Listen for changes
-                    battery.addEventListener('levelchange', updateBattery);
-                    battery.addEventListener('chargingchange', updateBattery);
+                    // Listen for changes (only attach once)
+                    if (!battery.hasListener) {
+                        battery.addEventListener('levelchange', updateBattery);
+                        battery.addEventListener('chargingchange', updateBattery);
+                        battery.hasListener = true;
+                    }
                 } catch (error) {
-                    // Fallback: show static 100%
+                    console.warn('Battery API error:', error);
                     $('#batteryPercent').text('100%');
+                    store.state.battery = 100;
                 }
             } else {
                 // Fallback: show static 100%
                 $('#batteryPercent').text('100%');
+                store.state.battery = 100;
             }
         }
 
@@ -5156,6 +5485,10 @@ Thank you for exploring!`,
             });
         }
 
+        /**
+         * Gaussian Curve Dock Magnification
+         * Creates the smooth "hill" shape characteristic of macOS dock
+         */
         function updateDockMagnificationByMouse(mouseX, mouseY) {
             $('.dock-icon').each(function() {
                 const $icon = $(this);
@@ -5177,12 +5510,37 @@ Thank you for exploring!`,
                 let translateY = 0;
 
                 if (distance < MAGNIFICATION_MAX_DISTANCE) {
-                    // Apply magnification formula: scale = 1 + (0.8 * (1 - distance/maxDistance))
-                    const magnificationRatio = 1 - (distance / MAGNIFICATION_MAX_DISTANCE);
-                    scale = 1 + (0.8 * magnificationRatio);
+                    // GAUSSIAN BELL CURVE DISTRIBUTION
+                    // This creates the smooth "hill" shape instead of linear falloff
+                    const normalizedDistance = distance / MAGNIFICATION_MAX_DISTANCE;
 
-                    // Add vertical lift based on scale
-                    translateY = -(scale - 1) * 15;
+                    // Gaussian formula: e^(-(x^2) / (2 * sigma^2))
+                    // sigma controls the width of the bell curve
+                    const sigma = 0.5;
+                    const gaussianFactor = Math.exp(-(normalizedDistance * normalizedDistance) / (2 * sigma * sigma));
+
+                    // Apply Gaussian scaling with max magnification of 1.8x (0.8 additional scale)
+                    scale = 1 + (0.8 * gaussianFactor);
+
+                    // Add vertical lift based on scale (creates the "lifting" effect)
+                    translateY = -(scale - 1) * 20;
+
+                    // Add slight neighbor spreading effect
+                    const neighbors = $('.dock-icon').not(this);
+                    const spreadRadius = 100;
+                    neighbors.each(function() {
+                        const neighborRect = this.getBoundingClientRect();
+                        const neighborCenterX = neighborRect.left + neighborRect.width / 2;
+                        const distanceToNeighbor = Math.abs(neighborCenterX - iconCenterX);
+
+                        if (distanceToNeighbor < spreadRadius && distanceToNeighbor > 0) {
+                            const spreadFactor = 1 - (distanceToNeighbor / spreadRadius);
+                            const currentMargin = parseFloat($(this).css('marginLeft')) || 0;
+                            const additionalMargin = 2 * spreadFactor * (scale - 1);
+                            $(this).css('marginLeft', `${additionalMargin}px`);
+                            $(this).css('marginRight', `${additionalMargin}px`);
+                        }
+                    });
                 }
 
                 // Apply transform with hardware acceleration
@@ -5191,7 +5549,11 @@ Thank you for exploring!`,
         }
 
         function resetDockMagnification() {
-            $('.dock-icon').css('transform', 'scale(1) translateY(0) translateZ(0)');
+            $('.dock-icon').css({
+                'transform': 'scale(1) translateY(0) translateZ(0)',
+                'marginLeft': '0px',
+                'marginRight': '0px'
+            });
         }
 
         // Throttle function for performance
