@@ -367,20 +367,19 @@
         }
 
         .dock-icon {
-            width: 48px;
-            height: 48px;
+            width: 55px;
+            height: 55px;
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s var(--animation-ease);
+            transition: transform 0.2s var(--animation-ease), filter 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             transform-origin: bottom;
         }
 
-        .dock-icon svg, .dock-icon img {
-            width: 100%;
-            height: 100%;
+        .dock-icon:hover {
+            filter: brightness(1.1);
         }
 
         .dock-separator {
@@ -399,10 +398,357 @@
             height: 4px;
             background: rgba(0, 0, 0, 0.5);
             border-radius: 50%;
+            z-index: 10;
         }
 
         .dock-icon.bouncing {
             animation: bounce 0.8s ease-in-out 2;
+        }
+
+        /* CSS-Generated Dock Icons */
+        .dock-icon-finder {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #a8daff 0%, #5fa3d0 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-finder::before {
+            content: '\f118';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 28px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+        }
+
+        .dock-icon-safari {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ffffff 0%, #e8f4ff 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-safari::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+        }
+
+        .dock-icon-safari::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 20px solid white;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+        }
+
+        .dock-icon-textedit {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe6b3 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-textedit::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38px;
+            height: 38px;
+            background: white;
+            border-radius: 3px;
+            box-shadow:
+                0 -12px 0 0 #F59E0B inset,
+                0 -9px 0 0 #F59E0B inset,
+                0 -6px 0 0 #F59E0B inset,
+                0 -3px 0 0 #F59E0B inset,
+                0 0 0 1px rgba(245, 158, 11, 0.2),
+                0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .dock-icon-textedit::after {
+            content: '\f303';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            font-size: 12px;
+            color: #F59E0B;
+            opacity: 0.7;
+        }
+
+        .dock-icon-mail {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-mail::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 26px;
+            background: white;
+            border-radius: 3px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .dock-icon-mail::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 13px solid #3b82f6;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+
+        .dock-icon-terminal {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-terminal::before {
+            content: '>_';
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .dock-icon-photos {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 50%, #10b981 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-photos::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #fef08a;
+            box-shadow: 0 0 10px rgba(254, 240, 138, 0.8);
+        }
+
+        .dock-icon-photos::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to top,
+                transparent 0%,
+                rgba(16, 185, 129, 0.3) 20%,
+                rgba(16, 185, 129, 0.5) 40%,
+                rgba(16, 185, 129, 0.7) 60%,
+                rgba(16, 185, 129, 0.9) 80%,
+                #10b981 100%
+            );
+            clip-path: polygon(0 100%, 15% 70%, 30% 80%, 50% 60%, 70% 75%, 85% 65%, 100% 85%, 100% 100%);
+        }
+
+        .dock-icon-settings {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-settings::before {
+            content: '\f013';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 30px;
+            color: rgba(255, 255, 255, 0.9);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+        }
+
+        .dock-icon-settings:hover::before {
+            animation: rotate360 2s linear infinite;
+        }
+
+        @keyframes rotate360 {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .dock-icon-calculator {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+            transform: translateZ(0);
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 2px;
+            padding: 10px;
+        }
+
+        .dock-icon-calculator::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            right: 10px;
+            height: 12px;
+            background: #86efac;
+            border-radius: 2px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .dock-icon-calculator::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 14px;
+            height: 10px;
+            background: #f97316;
+            border-radius: 2px;
+            box-shadow:
+                16px 0 0 #3b82f6,
+                0 12px 0 #eab308,
+                16px 12px 0 #22c55e;
+        }
+
+        .dock-icon-trash {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-trash::before {
+            content: '\f2ed';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 28px;
+            color: rgba(75, 85, 99, 0.7);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .dock-icon-trash:hover::before {
+            color: rgba(239, 68, 68, 0.8);
+        }
+
+        .dock-icon-paint {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background: linear-gradient(45deg,
+                #ef4444 0%,
+                #f97316 14%,
+                #eab308 28%,
+                #22c55e 42%,
+                #3b82f6 57%,
+                #6366f1 71%,
+                #a855f7 85%,
+                #ec4899 100%
+            );
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+            transform: translateZ(0);
+        }
+
+        .dock-icon-paint::after {
+            content: '\f1fc';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 28px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         /* ==================== 8. WINDOWS SYSTEM ==================== */
@@ -1001,77 +1347,33 @@
     <!-- ==================== DOCK ==================== -->
     <div class="dock" id="dock">
         <div class="dock-icon" data-app="finder" data-index="0" title="Finder">
-            <svg viewBox="0 0 64 64">
-                <defs>
-                    <linearGradient id="finderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#4A9EFF;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="64" height="64" rx="14" fill="url(#finderGrad)"/>
-                <circle cx="32" cy="28" r="10" fill="white" opacity="0.9"/>
-                <path d="M32 24v8M28 28h8" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M20 46h24c2 0 3-1 3-3v-6H17v6c0 2 1 3 3 3z" fill="white" opacity="0.8"/>
-            </svg>
+            <div class="dock-icon-finder"></div>
             <div class="running-indicator"></div>
         </div>
         <div class="dock-icon" data-app="safari" data-index="1" title="Safari">
-            <svg viewBox="0 0 64 64">
-                <defs>
-                    <linearGradient id="safariGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#0284C7;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="64" height="64" rx="14" fill="url(#safariGrad)"/>
-                <circle cx="32" cy="32" r="18" stroke="white" stroke-width="2.5" fill="none"/>
-                <circle cx="32" cy="32" r="3" fill="white"/>
-                <path d="M32 14v6M32 44v6M14 32h6M44 32h6" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                <path d="M24 24l16 16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <div class="dock-icon-safari"></div>
+            <div class="running-indicator"></div>
         </div>
         <div class="dock-icon" data-app="textedit" data-index="2" title="TextEdit">
-            <svg viewBox="0 0 64 64">
-                <defs>
-                    <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#FBBF24;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="64" height="64" rx="14" fill="url(#textGrad)"/>
-                <rect x="16" y="16" width="32" height="32" rx="2" fill="white" opacity="0.95"/>
-                <line x1="20" y1="24" x2="44" y2="24" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                <line x1="20" y1="32" x2="44" y2="32" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                <line x1="20" y1="40" x2="36" y2="40" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <div class="dock-icon-textedit"></div>
+            <div class="running-indicator"></div>
         </div>
         <div class="dock-icon" data-app="mail" data-index="3" title="Mail">
-            <svg viewBox="0 0 64 64">
-                <defs>
-                    <linearGradient id="mailGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="64" height="64" rx="14" fill="url(#mailGrad)"/>
-                <rect x="12" y="20" width="40" height="28" rx="2" fill="white" opacity="0.95"/>
-                <path d="M12 20l20 16 20-16" stroke="#1D4ED8" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-            </svg>
+            <div class="dock-icon-mail"></div>
+            <div class="running-indicator"></div>
+        </div>
+        <div class="dock-icon" data-app="photos" data-index="4" title="Photos">
+            <div class="dock-icon-photos"></div>
+            <div class="running-indicator"></div>
         </div>
         <div class="dock-separator"></div>
-        <div class="dock-icon" data-app="trash" data-index="5" title="Trash">
-            <svg viewBox="0 0 64 64">
-                <defs>
-                    <linearGradient id="trashGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#94A3B8;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#64748B;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="64" height="64" rx="14" fill="url(#trashGrad)"/>
-                <rect x="18" y="26" width="28" height="24" rx="2" fill="white" opacity="0.9"/>
-                <rect x="16" y="22" width="32" height="4" rx="1" fill="white" opacity="0.9"/>
-                <rect x="24" y="14" width="16" height="8" rx="1" fill="white" opacity="0.7"/>
-            </svg>
+        <div class="dock-icon" data-app="settings" data-index="6" title="Settings">
+            <div class="dock-icon-settings"></div>
+            <div class="running-indicator"></div>
+        </div>
+        <div class="dock-icon" data-app="trash" data-index="7" title="Trash">
+            <div class="dock-icon-trash"></div>
+            <div class="running-indicator"></div>
         </div>
     </div>
 
