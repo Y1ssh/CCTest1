@@ -861,12 +861,13 @@
             position: absolute;
             background: var(--macos-window-bg);
             border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
             overflow: hidden;
             display: none;
             pointer-events: auto;
-            min-width: 400px;
-            min-height: 300px;
+            min-width: 300px;
+            min-height: 200px;
+            transition: box-shadow 0.2s;
         }
 
         .window.visible {
@@ -875,8 +876,47 @@
             animation: windowOpen 0.3s var(--animation-ease);
         }
 
+        .window.active {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .window.inactive {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .window.maximized {
+            border-radius: 0;
+        }
+
+        .window.minimizing {
+            will-change: transform, opacity;
+            pointer-events: none;
+        }
+
         .window.closing {
             animation: windowClose 0.3s var(--animation-ease) forwards;
+        }
+
+        @keyframes windowOpen {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes windowClose {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.92);
+            }
         }
 
         .window-titlebar {
@@ -888,57 +928,76 @@
             padding: 0 12px;
             cursor: move;
             user-select: none;
+            position: relative;
         }
 
         .window.active .window-titlebar {
             background: #ececec;
         }
 
-        .window-controls {
+        /* Traffic Lights */
+        .traffic-lights {
             display: flex;
             gap: 8px;
             margin-right: 12px;
+            z-index: 2;
         }
 
-        .control-btn {
+        .traffic-btn {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 0.5px solid rgba(0, 0, 0, 0.15);
             position: relative;
             cursor: pointer;
-            transition: filter 0.2s;
+            transition: filter 0.15s, background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
         }
 
-        .control-btn:hover {
-            filter: brightness(0.9);
+        .traffic-btn:hover {
+            filter: brightness(0.88);
         }
 
-        .control-close {
-            background: var(--macos-red);
+        /* Inactive window - grey traffic lights */
+        .window.inactive .traffic-btn {
+            background: #d0d0d0 !important;
         }
 
-        .control-minimize {
-            background: var(--macos-yellow);
+        /* Active window - colored traffic lights */
+        .window.active .traffic-btn.close {
+            background: linear-gradient(135deg, #ff6057 0%, #ff5f52 100%);
         }
 
-        .control-maximize {
-            background: var(--macos-green);
+        .window.active .traffic-btn.minimize {
+            background: linear-gradient(135deg, #ffbd2e 0%, #ffbe30 100%);
         }
 
-        .control-btn svg {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 6px;
-            height: 6px;
+        .window.active .traffic-btn.maximize {
+            background: linear-gradient(135deg, #28ca42 0%, #27c83f 100%);
+        }
+
+        /* Icons inside traffic lights */
+        .traffic-btn i {
+            font-size: 6px;
+            color: rgba(0, 0, 0, 0.7);
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.15s;
         }
 
-        .window-titlebar:hover .control-btn svg {
+        .window-titlebar:hover .traffic-btn i {
             opacity: 1;
+        }
+
+        .window.inactive .traffic-btn i {
+            opacity: 0 !important;
+        }
+
+        /* Maximize icon change when maximized */
+        .window.maximized .traffic-btn.maximize i::before {
+            content: '\f066';  /* compress icon */
         }
 
         .window-title {
@@ -947,83 +1006,92 @@
             font-size: 13px;
             font-weight: 600;
             color: #000;
+            pointer-events: none;
+        }
+
+        .window-toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .window-content {
             flex: 1;
             overflow: auto;
             background: #fff;
+            position: relative;
         }
 
-        /* Resize handles */
-        .resize-handle {
+        /* jQuery UI resize handles styling */
+        .ui-resizable-handle {
             position: absolute;
             z-index: 10;
         }
 
-        .resize-n {
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
+        .ui-resizable-n {
             cursor: ns-resize;
-        }
-
-        .resize-s {
-            bottom: 0;
-            left: 0;
-            right: 0;
             height: 4px;
+            width: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .ui-resizable-s {
             cursor: ns-resize;
+            height: 4px;
+            width: 100%;
+            bottom: 0;
+            left: 0;
         }
 
-        .resize-e {
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
+        .ui-resizable-e {
             cursor: ew-resize;
-        }
-
-        .resize-w {
-            left: 0;
-            top: 0;
-            bottom: 0;
             width: 4px;
+            right: 0;
+            top: 0;
+            height: 100%;
+        }
+
+        .ui-resizable-w {
             cursor: ew-resize;
-        }
-
-        .resize-ne {
-            top: 0;
-            right: 0;
-            width: 8px;
-            height: 8px;
-            cursor: nesw-resize;
-        }
-
-        .resize-nw {
-            top: 0;
+            width: 4px;
             left: 0;
-            width: 8px;
-            height: 8px;
-            cursor: nwse-resize;
+            top: 0;
+            height: 100%;
         }
 
-        .resize-se {
-            bottom: 0;
-            right: 0;
-            width: 8px;
-            height: 8px;
-            cursor: nwse-resize;
-        }
-
-        .resize-sw {
-            bottom: 0;
-            left: 0;
-            width: 8px;
-            height: 8px;
+        .ui-resizable-ne {
             cursor: nesw-resize;
+            width: 8px;
+            height: 8px;
+            right: 0;
+            top: 0;
         }
+
+        .ui-resizable-nw {
+            cursor: nwse-resize;
+            width: 8px;
+            height: 8px;
+            left: 0;
+            top: 0;
+        }
+
+        .ui-resizable-se {
+            cursor: nwse-resize;
+            width: 8px;
+            height: 8px;
+            right: 0;
+            bottom: 0;
+        }
+
+        .ui-resizable-sw {
+            cursor: nesw-resize;
+            width: 8px;
+            height: 8px;
+            left: 0;
+            bottom: 0;
+        }
+
 
         /* ==================== 9. APPS SPECIFIC STYLES ==================== */
         /* Finder */
@@ -1610,23 +1678,17 @@
 
     <!-- ==================== WINDOW TEMPLATES ==================== -->
     <template id="finderWindowTemplate">
-        <div class="window" data-app="finder" style="width: 800px; height: 500px; left: 100px; top: 80px;">
+        <div class="window" data-app="finder" style="width: 800px; height: 500px;">
             <div class="window-titlebar">
-                <div class="window-controls">
-                    <button class="control-btn control-close">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                <div class="traffic-lights">
+                    <button class="traffic-btn close" title="Close">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <button class="control-btn control-minimize">
-                        <svg viewBox="0 0 8 2" fill="none">
-                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                    <button class="traffic-btn minimize" title="Minimize">
+                        <i class="fas fa-minus"></i>
                     </button>
-                    <button class="control-btn control-maximize">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button class="traffic-btn maximize" title="Maximize">
+                        <i class="fas fa-expand-alt"></i>
                     </button>
                 </div>
                 <div class="window-title">Finder</div>
@@ -1689,23 +1751,17 @@
     </template>
 
     <template id="safariWindowTemplate">
-        <div class="window" data-app="safari" style="width: 900px; height: 600px; left: 150px; top: 100px;">
+        <div class="window" data-app="safari" style="width: 1000px; height: 600px;">
             <div class="window-titlebar">
-                <div class="window-controls">
-                    <button class="control-btn control-close">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                <div class="traffic-lights">
+                    <button class="traffic-btn close" title="Close">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <button class="control-btn control-minimize">
-                        <svg viewBox="0 0 8 2" fill="none">
-                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                    <button class="traffic-btn minimize" title="Minimize">
+                        <i class="fas fa-minus"></i>
                     </button>
-                    <button class="control-btn control-maximize">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button class="traffic-btn maximize" title="Maximize">
+                        <i class="fas fa-expand-alt"></i>
                     </button>
                 </div>
                 <div class="window-title">Safari</div>
@@ -1755,23 +1811,17 @@
     </template>
 
     <template id="texteditWindowTemplate">
-        <div class="window" data-app="textedit" style="width: 700px; height: 500px; left: 200px; top: 120px;">
+        <div class="window" data-app="textedit" style="width: 600px; height: 500px;">
             <div class="window-titlebar">
-                <div class="window-controls">
-                    <button class="control-btn control-close">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                <div class="traffic-lights">
+                    <button class="traffic-btn close" title="Close">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <button class="control-btn control-minimize">
-                        <svg viewBox="0 0 8 2" fill="none">
-                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                    <button class="traffic-btn minimize" title="Minimize">
+                        <i class="fas fa-minus"></i>
                     </button>
-                    <button class="control-btn control-maximize">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button class="traffic-btn maximize" title="Maximize">
+                        <i class="fas fa-expand-alt"></i>
                     </button>
                 </div>
                 <div class="window-title">Untitled</div>
@@ -1813,23 +1863,17 @@ Start typing to create your document...</div>
     </template>
 
     <template id="settingsWindowTemplate">
-        <div class="window" data-app="settings" style="width: 800px; height: 550px; left: 250px; top: 150px;">
+        <div class="window" data-app="settings" style="width: 500px; height: 400px;">
             <div class="window-titlebar">
-                <div class="window-controls">
-                    <button class="control-btn control-close">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 1l4 4M5 1L1 5" stroke="#8D0000" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                <div class="traffic-lights">
+                    <button class="traffic-btn close" title="Close">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <button class="control-btn control-minimize">
-                        <svg viewBox="0 0 8 2" fill="none">
-                            <path d="M1 1h6" stroke="#965700" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                    <button class="traffic-btn minimize" title="Minimize">
+                        <i class="fas fa-minus"></i>
                     </button>
-                    <button class="control-btn control-maximize">
-                        <svg viewBox="0 0 6 6" fill="none">
-                            <path d="M1 3l2 2 4-4" stroke="#007940" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button class="traffic-btn maximize" title="Maximize">
+                        <i class="fas fa-expand-alt"></i>
                     </button>
                 </div>
                 <div class="window-title">System Settings</div>
@@ -1976,6 +2020,9 @@ Start typing to create your document...</div>
             constructor() {
                 this.windows = new Map();
                 this.zIndexCounter = 100;
+                this.activeWindow = null;
+                this.minimizedWindows = new Set();
+                this.lastCascadePosition = { x: 100, y: 80 };
             }
 
             create(appName) {
@@ -1984,6 +2031,16 @@ Start typing to create your document...</div>
 
                 const $window = $(template.html());
                 $window.attr('id', `${appName}Window`);
+
+                // Set cascade position
+                const position = this.getCascadePosition();
+                $window.css({
+                    left: position.x + 'px',
+                    top: position.y + 'px'
+                });
+
+                // Add to DOM first (needed for jQuery UI)
+                $('#windowsLayer').append($window);
 
                 // Setup window with jQuery UI
                 this.setupDraggable($window);
@@ -1995,30 +2052,103 @@ Start typing to create your document...</div>
                 if (appName === 'textedit') this.setupTextEdit($window);
                 if (appName === 'settings') this.setupSettings($window);
 
-                // Add to DOM and setup controls
-                $('#windowsLayer').append($window);
+                // Setup controls
                 this.setupControls($window, appName);
 
                 this.windows.set(appName, $window);
                 return $window;
             }
 
+            getCascadePosition() {
+                // Cascade windows with 30px offset
+                const viewportWidth = $(window).width();
+                const viewportHeight = $(window).height();
+
+                this.lastCascadePosition.x += 30;
+                this.lastCascadePosition.y += 30;
+
+                // Add random variation for natural feel
+                const randomX = (Math.random() - 0.5) * 20;
+                const randomY = (Math.random() - 0.5) * 20;
+
+                const x = this.lastCascadePosition.x + randomX;
+                const y = this.lastCascadePosition.y + randomY;
+
+                // Wrap if too far right/bottom
+                if (x > viewportWidth - 400 || y > viewportHeight - 300) {
+                    this.lastCascadePosition = { x: 100, y: 80 };
+                    return { x: 100, y: 80 };
+                }
+
+                return { x, y };
+            }
+
             open(appName) {
                 let $window = this.windows.get(appName) || this.create(appName);
                 if (!$window) return;
 
+                // If minimized, restore it
+                if (this.minimizedWindows.has(appName)) {
+                    this.restore($window);
+                    return;
+                }
+
+                // If already visible, just focus
                 if ($window.hasClass('visible')) {
                     this.focus($window);
                     return;
                 }
 
-                $window.addClass('visible');
+                // Open new window
+                $window.addClass('visible active');
                 state.windows.push($window[0]);
                 state.openApps.add(appName);
                 this.focus($window);
                 this.updateRunningIndicators();
                 this.bounceIcon(appName);
                 this.updateAppName(appName);
+            }
+
+            restore($window) {
+                const appName = $window.data('app');
+                const $dockIcon = $(`.dock-icon[data-app="${appName}"]`);
+
+                this.minimizedWindows.delete(appName);
+
+                if ($dockIcon.length) {
+                    const iconPos = $dockIcon.offset();
+                    const storedPos = $window.data('minimizePosition');
+
+                    // Start from dock icon position
+                    $window.addClass('visible minimizing').css({
+                        left: iconPos.left + 'px',
+                        top: iconPos.top + 'px',
+                        transform: 'scale(0.01)',
+                        opacity: 0
+                    });
+
+                    // Animate to original position
+                    requestAnimationFrame(() => {
+                        $window.css({
+                            transition: 'all 0.4s cubic-bezier(0, 0, 0.2, 1)',
+                            left: storedPos.left,
+                            top: storedPos.top,
+                            width: storedPos.width,
+                            height: storedPos.height,
+                            transform: 'scale(1)',
+                            opacity: 1
+                        });
+                    });
+
+                    setTimeout(() => {
+                        $window.removeClass('minimizing').css({
+                            transform: '',
+                            transition: '',
+                            opacity: ''
+                        });
+                        this.focus($window);
+                    }, 400);
+                }
             }
 
             close($window) {
@@ -2043,22 +2173,41 @@ Start typing to create your document...</div>
                 const $dockIcon = $(`.dock-icon[data-app="${appName}"]`);
 
                 if ($dockIcon.length) {
+                    // Store current position/size for restore
+                    $window.data('minimizePosition', {
+                        left: $window.css('left'),
+                        top: $window.css('top'),
+                        width: $window.css('width'),
+                        height: $window.css('height')
+                    });
+
                     const iconPos = $dockIcon.offset();
                     const windowPos = $window.offset();
 
+                    // Genie effect animation
+                    $window.addClass('minimizing');
+
                     $window.css({
-                        transition: `all ${CONFIG.MINIMIZE_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`,
-                        transform: `scale(0.05) translate(${iconPos.left - windowPos.left}px, ${iconPos.top - windowPos.top}px)`,
+                        transition: `all 0.4s cubic-bezier(0.4, 0, 1, 1)`,
+                        transform: `scale(0.01) translate(${iconPos.left - windowPos.left}px, ${iconPos.top - windowPos.top}px)`,
                         opacity: 0
                     });
 
                     setTimeout(() => {
-                        $window.removeClass('visible').css({
+                        $window.removeClass('visible active minimizing').css({
                             transform: '',
                             transition: '',
                             opacity: ''
                         });
-                    }, CONFIG.MINIMIZE_DURATION);
+
+                        this.minimizedWindows.add(appName);
+
+                        // Focus next window if any
+                        const remainingWindows = state.windows.filter(w => $(w).hasClass('visible'));
+                        if (remainingWindows.length > 0) {
+                            this.focus($(remainingWindows[remainingWindows.length - 1]));
+                        }
+                    }, 400);
                 }
             }
 
@@ -2066,20 +2215,22 @@ Start typing to create your document...</div>
                 const isMaximized = $window.data('maximized') === 'true';
 
                 if (isMaximized) {
-                    $window.css({
+                    // Restore to original size
+                    $window.removeClass('maximized').css({
                         left: $window.data('originalLeft'),
                         top: $window.data('originalTop'),
                         width: $window.data('originalWidth'),
                         height: $window.data('originalHeight')
                     }).data('maximized', 'false');
                 } else {
+                    // Maximize to full screen
                     $window.data({
                         originalLeft: $window.css('left'),
                         originalTop: $window.css('top'),
                         originalWidth: $window.css('width'),
                         originalHeight: $window.css('height'),
                         maximized: 'true'
-                    }).css({
+                    }).addClass('maximized').css({
                         left: 0,
                         top: 0,
                         width: '100vw',
@@ -2089,9 +2240,13 @@ Start typing to create your document...</div>
             }
 
             focus($window) {
-                $('.window').removeClass('active');
-                $window.addClass('active').css('z-index', ++this.zIndexCounter);
-                state.activeWindow = $window[0];
+                // Remove active from all windows and add inactive
+                $('.window.visible').removeClass('active').addClass('inactive');
+
+                // Add active to this window
+                $window.removeClass('inactive').addClass('active').css('z-index', ++this.zIndexCounter);
+
+                this.activeWindow = $window[0];
                 this.updateAppName($window.data('app'));
             }
 
@@ -2112,9 +2267,23 @@ Start typing to create your document...</div>
             }
 
             setupControls($window, appName) {
-                $window.find('.control-close').on('click', () => this.close($window));
-                $window.find('.control-minimize').on('click', () => this.minimize($window));
-                $window.find('.control-maximize').on('click', () => this.maximize($window));
+                // Traffic light buttons
+                $window.find('.traffic-btn.close').on('click', (e) => {
+                    e.stopPropagation();
+                    this.close($window);
+                });
+
+                $window.find('.traffic-btn.minimize').on('click', (e) => {
+                    e.stopPropagation();
+                    this.minimize($window);
+                });
+
+                $window.find('.traffic-btn.maximize').on('click', (e) => {
+                    e.stopPropagation();
+                    this.maximize($window);
+                });
+
+                // Focus on mousedown anywhere in window
                 $window.on('mousedown', () => this.focus($window));
             }
 
