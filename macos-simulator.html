@@ -519,9 +519,10 @@
             left: 0;
             width: 100%;
             height: 28px;
-            background: var(--macos-menu-bar);
-            backdrop-filter: var(--blur-medium) saturate(180%);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            /* VIBRANCY MATERIAL: The secret sauce for glass morphism */
+            background: rgba(246, 246, 246, 0.65);
+            backdrop-filter: blur(50px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -989,9 +990,10 @@
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            /* VIBRANCY MATERIAL: Glass morphism with wallpaper color pop-through */
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(50px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             padding: 8px 12px;
             display: flex;
@@ -999,7 +1001,7 @@
             gap: 8px;
             z-index: 9999;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         .dock-icon {
@@ -3044,16 +3046,187 @@ Start typing to create your document...</div>
             }
         ];
 
-        // ==================== 2. STATE MANAGEMENT ====================
-        const state = {
+        // ==================== 2. GLOBAL STATE SYSTEM (OBSERVER PATTERN) ====================
+
+        /**
+         * Store Class - Global State Management with Automatic UI Updates
+         * Uses Proxy pattern to observe changes and trigger reactions
+         */
+        class Store {
+            constructor(initialState = {}) {
+                this._state = initialState;
+                this._listeners = new Map(); // key -> Set of callbacks
+                this._persistKeys = new Set(); // Keys to persist to localStorage
+
+                // Create reactive proxy
+                this.state = new Proxy(this._state, {
+                    set: (target, property, value) => {
+                        const oldValue = target[property];
+                        target[property] = value;
+
+                        // Trigger listeners for this property
+                        this._notify(property, value, oldValue);
+
+                        // Auto-persist if marked
+                        if (this._persistKeys.has(property)) {
+                            this._persistToLocalStorage();
+                        }
+
+                        return true;
+                    },
+                    get: (target, property) => {
+                        return target[property];
+                    }
+                });
+            }
+
+            // Subscribe to state changes
+            subscribe(key, callback) {
+                if (!this._listeners.has(key)) {
+                    this._listeners.set(key, new Set());
+                }
+                this._listeners.get(key).add(callback);
+
+                // Return unsubscribe function
+                return () => {
+                    this._listeners.get(key)?.delete(callback);
+                };
+            }
+
+            // Notify all listeners for a key
+            _notify(key, newValue, oldValue) {
+                if (this._listeners.has(key)) {
+                    this._listeners.get(key).forEach(callback => {
+                        try {
+                            callback(newValue, oldValue);
+                        } catch (error) {
+                            console.error(`Error in listener for ${key}:`, error);
+                        }
+                    });
+                }
+
+                // Also notify wildcard listeners
+                if (this._listeners.has('*')) {
+                    this._listeners.get('*').forEach(callback => {
+                        try {
+                            callback(key, newValue, oldValue);
+                        } catch (error) {
+                            console.error('Error in wildcard listener:', error);
+                        }
+                    });
+                }
+            }
+
+            // Mark keys for localStorage persistence
+            persist(...keys) {
+                keys.forEach(key => this._persistKeys.add(key));
+                return this;
+            }
+
+            // Save to localStorage
+            _persistToLocalStorage() {
+                const persistData = {};
+                this._persistKeys.forEach(key => {
+                    let value = this.state[key];
+                    // Convert Set to Array for JSON serialization
+                    if (value instanceof Set) {
+                        value = Array.from(value);
+                    }
+                    persistData[key] = value;
+                });
+
+                try {
+                    localStorage.setItem('macos-store', JSON.stringify(persistData));
+                } catch (e) {
+                    console.warn('Could not persist state:', e);
+                }
+            }
+
+            // Load from localStorage
+            loadFromLocalStorage() {
+                try {
+                    const saved = localStorage.getItem('macos-store');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        Object.keys(data).forEach(key => {
+                            // Convert Array back to Set if needed
+                            if (key === 'openApps' && Array.isArray(data[key])) {
+                                this.state[key] = new Set(data[key]);
+                            } else {
+                                this.state[key] = data[key];
+                            }
+                        });
+                        return true;
+                    }
+                } catch (e) {
+                    console.warn('Could not load state:', e);
+                }
+                return false;
+            }
+
+            // Batch updates without triggering listeners
+            batchUpdate(updates) {
+                Object.keys(updates).forEach(key => {
+                    this._state[key] = updates[key];
+                });
+                // Trigger all affected listeners once
+                Object.keys(updates).forEach(key => {
+                    this._notify(key, updates[key], undefined);
+                });
+            }
+        }
+
+        // Initialize Global Store
+        const store = new Store({
+            // App State
             activeWindow: null,
-            windows: [],
-            maxZIndex: 100,
             openApps: new Set(['finder']),
-            dockHoverIndex: -1,
+            minimizedApps: new Set(),
+
+            // Window Management
+            windows: new Map(), // appId -> window DOM element
+            windowPositions: {}, // appId -> {x, y, width, height}
+            maxZIndex: 100,
+
+            // UI State
             currentWallpaper: 'monterey',
-            particleSystem: null
-        };
+            appearance: 'light', // 'light' or 'dark'
+            dockMagnification: true,
+
+            // System State
+            volume: 50,
+            brightness: 100,
+            battery: 100,
+            charging: true,
+
+            // Finder State
+            finderCurrentPath: ['Desktop'],
+            finderHistory: { past: [], future: [] },
+            finderViewMode: 'grid',
+
+            // Preferences
+            soundsEnabled: false,
+            reduceMotion: false,
+            textEditContent: '',
+            terminalHistory: []
+        });
+
+        // Mark keys for persistence
+        store.persist(
+            'openApps',
+            'windowPositions',
+            'currentWallpaper',
+            'appearance',
+            'volume',
+            'brightness',
+            'soundsEnabled',
+            'textEditContent',
+            'terminalHistory',
+            'finderCurrentPath'
+        );
+
+        // Legacy compatibility - keep state object as reference to store.state
+        const state = store.state;
 
         // ==================== 2.5. UTILITY FUNCTIONS ====================
 
@@ -3088,48 +3261,20 @@ Start typing to create your document...</div>
             }
         }
 
-        // LocalStorage Preferences System
+        // Legacy compatibility - preferences now uses the store
         const preferences = {
-            wallpaper: 'monterey',
-            soundsEnabled: false,
-            appearance: 'light',
-            lastOpenApps: [],
-            windowPositions: {},
-            textEditContent: '',
-            get: function(key) {
-                return this[key];
-            },
-            set: function(key, value) {
-                this[key] = value;
-                this.save();
-            },
-            save: function() {
-                try {
-                    localStorage.setItem('macos-preferences', JSON.stringify({
-                        wallpaper: this.wallpaper,
-                        soundsEnabled: this.soundsEnabled,
-                        appearance: this.appearance,
-                        lastOpenApps: Array.from(state.openApps || []),
-                        windowPositions: this.windowPositions,
-                        textEditContent: this.textEditContent
-                    }));
-                } catch (e) {
-                    console.warn('Could not save preferences:', e);
-                }
-            },
-            load: function() {
-                try {
-                    const saved = localStorage.getItem('macos-preferences');
-                    if (saved) {
-                        const data = JSON.parse(saved);
-                        Object.assign(this, data);
-                        return true;
-                    }
-                } catch (e) {
-                    console.warn('Could not load preferences:', e);
-                }
-                return false;
-            }
+            get wallpaper() { return store.state.currentWallpaper; },
+            set wallpaper(val) { store.state.currentWallpaper = val; },
+            get soundsEnabled() { return store.state.soundsEnabled; },
+            set soundsEnabled(val) { store.state.soundsEnabled = val; },
+            get appearance() { return store.state.appearance; },
+            set appearance(val) { store.state.appearance = val; },
+            get windowPositions() { return store.state.windowPositions; },
+            set windowPositions(val) { store.state.windowPositions = val; },
+            get textEditContent() { return store.state.textEditContent; },
+            set textEditContent(val) { store.state.textEditContent = val; },
+            save: () => store._persistToLocalStorage(),
+            load: () => store.loadFromLocalStorage()
         };
 
         // Global error handler
@@ -3140,6 +3285,127 @@ Start typing to create your document...</div>
         window.addEventListener('unhandledrejection', (e) => {
             console.error('Unhandled promise rejection:', e.reason);
         });
+
+        // ==================== 2.7. APPS CONFIGURATION (VIRTUAL DOM) ====================
+
+        /**
+         * Central App Configuration - Similar to apps-config.ts
+         * Defines all app properties in one place for easy management
+         */
+        const APPS_CONFIG = {
+            finder: {
+                title: 'Finder',
+                icon: 'fa-folder',
+                defaultSize: { width: 800, height: 500 },
+                minSize: { width: 600, height: 400 },
+                resizable: true,
+                templateId: 'finderWindowTemplate',
+                setupFunction: 'setupFinder'
+            },
+            safari: {
+                title: 'Safari',
+                icon: 'fa-compass',
+                defaultSize: { width: 900, height: 600 },
+                minSize: { width: 600, height: 400 },
+                resizable: true,
+                templateId: 'safariWindowTemplate',
+                setupFunction: 'setupSafari'
+            },
+            textedit: {
+                title: 'TextEdit',
+                icon: 'fa-file-lines',
+                defaultSize: { width: 600, height: 400 },
+                minSize: { width: 400, height: 300 },
+                resizable: true,
+                templateId: 'texteditWindowTemplate',
+                setupFunction: 'setupTextEdit'
+            },
+            terminal: {
+                title: 'Terminal',
+                icon: 'fa-terminal',
+                defaultSize: { width: 700, height: 450 },
+                minSize: { width: 500, height: 300 },
+                resizable: true,
+                templateId: 'terminalWindowTemplate',
+                setupFunction: 'setupTerminal'
+            },
+            calculator: {
+                title: 'Calculator',
+                icon: 'fa-calculator',
+                defaultSize: { width: 280, height: 380 },
+                minSize: { width: 280, height: 380 },
+                resizable: false,
+                templateId: 'calculatorWindowTemplate',
+                setupFunction: 'setupCalculator'
+            },
+            settings: {
+                title: 'System Settings',
+                icon: 'fa-gear',
+                defaultSize: { width: 700, height: 500 },
+                minSize: { width: 600, height: 400 },
+                resizable: true,
+                templateId: 'settingsWindowTemplate',
+                setupFunction: 'setupSettings'
+            },
+            paint: {
+                title: 'Paint',
+                icon: 'fa-paintbrush',
+                defaultSize: { width: 800, height: 600 },
+                minSize: { width: 400, height: 300 },
+                resizable: true,
+                templateId: 'paintWindowTemplate',
+                setupFunction: 'setupPaint'
+            },
+            mail: {
+                title: 'Mail',
+                icon: 'fa-envelope',
+                defaultSize: { width: 800, height: 600 },
+                minSize: { width: 600, height: 400 },
+                resizable: true,
+                templateId: null, // Not implemented yet
+                setupFunction: null
+            }
+        };
+
+        /**
+         * Render Window - Virtual DOM approach
+         * Creates a window from config instead of hardcoded HTML
+         */
+        function renderWindow(appId, config) {
+            // If template exists, use it
+            if (config.templateId) {
+                const template = $(`#${config.templateId}`);
+                if (template.length) {
+                    return $(template.html());
+                }
+            }
+
+            // Otherwise, generate window structure from config
+            const { width, height } = config.defaultSize;
+            const $window = $(`
+                <div class="window" data-app="${appId}" style="width: ${width}px; height: ${height}px;">
+                    <div class="window-titlebar">
+                        <div class="traffic-lights">
+                            <button class="traffic-btn close"></button>
+                            <button class="traffic-btn minimize"></button>
+                            <button class="traffic-btn maximize"></button>
+                        </div>
+                        <div class="window-title">
+                            <i class="fa-solid ${config.icon}"></i>
+                            ${config.title}
+                        </div>
+                    </div>
+                    <div class="window-content">
+                        <div class="app-placeholder">
+                            <i class="fa-solid ${config.icon}" style="font-size: 64px; opacity: 0.3;"></i>
+                            <p style="margin-top: 20px; opacity: 0.5;">${config.title} - Coming Soon</p>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            return $window;
+        }
 
         // ==================== 3. WINDOW MANAGER CLASS ====================
         class WindowManager {
