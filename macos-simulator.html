@@ -695,6 +695,99 @@
             text-align: center;
         }
 
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            min-width: 200px;
+            background: rgba(40, 40, 42, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 999999;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+
+        .context-menu.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .context-menu-item {
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.1s ease;
+            position: relative;
+        }
+
+        .context-menu-item:hover:not(.disabled) {
+            background: rgba(0, 122, 255, 0.8);
+        }
+
+        .context-menu-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .context-menu-item i:first-child {
+            width: 16px;
+            font-size: 14px;
+        }
+
+        .context-menu-item span:first-of-type {
+            flex: 1;
+        }
+
+        .context-menu-item .context-menu-shortcut {
+            margin-left: auto;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+        }
+
+        .context-menu-item .fa-chevron-right {
+            margin-left: auto;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 4px 8px;
+        }
+
+        .context-submenu {
+            position: fixed;
+            min-width: 180px;
+            background: rgba(40, 40, 42, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 999999;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+
+        .context-submenu.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
         /* ==================== 7. DOCK ==================== */
         .dock {
             position: fixed;
@@ -3716,6 +3809,218 @@ Start typing to create your document...</div>
             }
         }
 
+        // ==================== 3.7. CONTEXT MENU MANAGER CLASS ====================
+        class ContextMenuManager {
+            constructor() {
+                this.activeMenu = null;
+                this.activeSubmenu = null;
+                this.submenuTimeout = null;
+            }
+
+            init() {
+                // Close menu on outside click
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.context-menu, .context-submenu')) {
+                        this.hide();
+                    }
+                });
+
+                // Close menu on ESC
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.hide();
+                    }
+                });
+
+                // Prevent default context menu
+                document.addEventListener('contextmenu', (e) => {
+                    // Let specific handlers manage their own preventDefault
+                });
+            }
+
+            show(x, y, items) {
+                this.hide(); // Hide any existing
+
+                // Create menu
+                const menu = document.createElement('div');
+                menu.className = 'context-menu';
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+
+                // Add items
+                items.forEach(item => {
+                    if (item.type === 'separator') {
+                        menu.appendChild(this.createSeparator());
+                    } else {
+                        menu.appendChild(this.createItem(item));
+                    }
+                });
+
+                document.body.appendChild(menu);
+                this.activeMenu = menu;
+
+                // Adjust position if offscreen
+                this.adjustPosition(menu);
+
+                // Animate entrance
+                requestAnimationFrame(() => {
+                    menu.classList.add('visible');
+                });
+            }
+
+            hide() {
+                if (this.activeSubmenu) {
+                    this.activeSubmenu.classList.remove('visible');
+                    setTimeout(() => {
+                        this.activeSubmenu?.remove();
+                        this.activeSubmenu = null;
+                    }, 150);
+                }
+
+                if (this.activeMenu) {
+                    this.activeMenu.classList.remove('visible');
+                    setTimeout(() => {
+                        this.activeMenu?.remove();
+                        this.activeMenu = null;
+                    }, 150);
+                }
+
+                if (this.submenuTimeout) {
+                    clearTimeout(this.submenuTimeout);
+                    this.submenuTimeout = null;
+                }
+            }
+
+            createItem(item) {
+                const el = document.createElement('div');
+                el.className = 'context-menu-item';
+                if (item.disabled) el.classList.add('disabled');
+
+                let html = '';
+                if (item.icon) html += `<i class="${item.icon}"></i>`;
+                html += `<span>${item.label}</span>`;
+                if (item.shortcut) html += `<span class="context-menu-shortcut">${item.shortcut}</span>`;
+                if (item.submenu) html += '<i class="fas fa-chevron-right"></i>';
+
+                el.innerHTML = html;
+
+                if (!item.disabled) {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (item.action && !item.submenu) {
+                            item.action();
+                            this.hide();
+                        }
+                    });
+                }
+
+                // Handle submenu
+                if (item.submenu) {
+                    el.addEventListener('mouseenter', () => {
+                        // Hide existing submenu
+                        if (this.activeSubmenu) {
+                            this.activeSubmenu.remove();
+                            this.activeSubmenu = null;
+                        }
+
+                        const rect = el.getBoundingClientRect();
+                        this.showSubmenu(rect.right + 5, rect.top, item.submenu);
+                    });
+
+                    el.addEventListener('mouseleave', (e) => {
+                        // Don't hide if moving to submenu
+                        if (this.submenuTimeout) {
+                            clearTimeout(this.submenuTimeout);
+                        }
+                        this.submenuTimeout = setTimeout(() => {
+                            if (this.activeSubmenu && !this.activeSubmenu.matches(':hover')) {
+                                this.activeSubmenu.classList.remove('visible');
+                                setTimeout(() => {
+                                    this.activeSubmenu?.remove();
+                                    this.activeSubmenu = null;
+                                }, 150);
+                            }
+                        }, 200);
+                    });
+                }
+
+                return el;
+            }
+
+            createSeparator() {
+                const el = document.createElement('div');
+                el.className = 'context-menu-separator';
+                return el;
+            }
+
+            showSubmenu(x, y, items) {
+                // Create submenu
+                const submenu = document.createElement('div');
+                submenu.className = 'context-submenu';
+                submenu.style.left = x + 'px';
+                submenu.style.top = y + 'px';
+
+                // Add items
+                items.forEach(item => {
+                    if (item.type === 'separator') {
+                        submenu.appendChild(this.createSeparator());
+                    } else {
+                        const el = document.createElement('div');
+                        el.className = 'context-menu-item';
+                        if (item.disabled) el.classList.add('disabled');
+
+                        let html = '';
+                        if (item.icon) html += `<i class="${item.icon}"></i>`;
+                        html += `<span>${item.label}</span>`;
+                        if (item.shortcut) html += `<span class="context-menu-shortcut">${item.shortcut}</span>`;
+
+                        el.innerHTML = html;
+
+                        if (!item.disabled && item.action) {
+                            el.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                item.action();
+                                this.hide();
+                            });
+                        }
+
+                        submenu.appendChild(el);
+                    }
+                });
+
+                document.body.appendChild(submenu);
+                this.activeSubmenu = submenu;
+
+                // Adjust position if offscreen
+                this.adjustPosition(submenu);
+
+                // Animate entrance
+                requestAnimationFrame(() => {
+                    submenu.classList.add('visible');
+                });
+            }
+
+            adjustPosition(menu) {
+                const rect = menu.getBoundingClientRect();
+                const viewport = {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                };
+
+                // Adjust horizontal
+                if (rect.right > viewport.width) {
+                    const newLeft = viewport.width - rect.width - 10;
+                    menu.style.left = Math.max(10, newLeft) + 'px';
+                }
+
+                // Adjust vertical
+                if (rect.bottom > viewport.height) {
+                    const newTop = viewport.height - rect.height - 10;
+                    menu.style.top = Math.max(10, newTop) + 'px';
+                }
+            }
+        }
+
         // ==================== 4. BOOT SEQUENCE ====================
         function startBoot() {
             setTimeout(() => {
@@ -4392,10 +4697,104 @@ Start typing to create your document...</div>
             });
         }
 
+        // ==================== 9. CONTEXT MENU SYSTEM ====================
+        function setupContextMenus() {
+            // Desktop context menu
+            $('#desktop').on('contextmenu', function(e) {
+                // Only show if not clicking on window, dock, or menubar
+                if (!$(e.target).closest('.window, .dock, .menubar, .spotlight-overlay, .app-switcher-overlay').length) {
+                    e.preventDefault();
+
+                    cm.show(e.clientX, e.clientY, [
+                        { label: 'New Folder', icon: 'fas fa-folder-plus', action: () => {
+                            alert('New Folder created (demo)');
+                        }},
+                        { type: 'separator' },
+                        { label: 'Get Info', icon: 'fas fa-info-circle', disabled: true },
+                        { label: 'Change Wallpaper...', icon: 'fas fa-image', action: () => wm.open('settings') },
+                        { type: 'separator' },
+                        { label: 'Use Stacks', disabled: true },
+                        { label: 'Sort By', icon: 'fas fa-sort', submenu: [
+                            { label: 'Name', action: () => console.log('Sort by Name') },
+                            { label: 'Date Modified', action: () => console.log('Sort by Date') },
+                            { label: 'Size', action: () => console.log('Sort by Size') },
+                            { label: 'Kind', action: () => console.log('Sort by Kind') }
+                        ]},
+                        { type: 'separator' },
+                        { label: 'Show View Options', icon: 'fas fa-sliders-h', disabled: true }
+                    ]);
+                }
+            });
+
+            // Dock icon context menu
+            $(document).on('contextmenu', '.dock-icon', function(e) {
+                e.preventDefault();
+                const appName = $(this).data('app');
+                const isOpen = state.openApps.has(appName);
+
+                const appNames = {
+                    finder: 'Finder',
+                    safari: 'Safari',
+                    textedit: 'TextEdit',
+                    terminal: 'Terminal',
+                    calculator: 'Calculator',
+                    paint: 'Paint',
+                    settings: 'Settings'
+                };
+
+                cm.show(e.clientX, e.clientY, [
+                    { label: 'Options', icon: 'fas fa-cog', submenu: [
+                        { label: 'Keep in Dock', action: () => console.log('Keep in Dock:', appName) },
+                        { label: 'Open at Login', disabled: true },
+                        { label: 'Show in Finder', disabled: true }
+                    ]},
+                    { type: 'separator' },
+                    { label: 'Show All Windows', icon: 'fas fa-window-restore', disabled: !isOpen },
+                    { type: 'separator' },
+                    { label: `Quit ${appNames[appName] || appName}`, icon: 'fas fa-times',
+                      action: () => {
+                          if (isOpen) {
+                              const $window = wm.windows.get(appName);
+                              if ($window) wm.close($window);
+                          }
+                      },
+                      disabled: !isOpen
+                    }
+                ]);
+            });
+
+            // Window titlebar context menu (delegated event)
+            $(document).on('contextmenu', '.window-titlebar', function(e) {
+                e.preventDefault();
+                const $window = $(this).closest('.window');
+                const appName = $window.data('app');
+
+                cm.show(e.clientX, e.clientY, [
+                    { label: 'Minimize', icon: 'fas fa-minus', shortcut: '⌘M', action: () => {
+                        wm.minimize($window);
+                    }},
+                    { label: 'Zoom', icon: 'fas fa-expand', shortcut: 'F11', action: () => {
+                        if ($window.hasClass('maximized')) {
+                            wm.unmaximize($window);
+                        } else {
+                            wm.maximize($window);
+                        }
+                    }},
+                    { type: 'separator' },
+                    { label: 'Move to Display', icon: 'fas fa-desktop', disabled: true },
+                    { type: 'separator' },
+                    { label: 'Close Window', icon: 'fas fa-times', shortcut: '⌘W', action: () => {
+                        wm.close($window);
+                    }}
+                ]);
+            });
+        }
+
         // ==================== 10. INITIALIZATION ====================
         let windowManager;
         let wm; // Shorthand reference
         let km; // KeyboardManager instance
+        let cm; // ContextMenuManager instance
 
         $(document).ready(function() {
             console.log('🍎 macOS Simulator - Ultimate Edition');
@@ -4412,6 +4811,10 @@ Start typing to create your document...</div>
             // Initialize KeyboardManager
             km = new KeyboardManager();
             km.init();
+
+            // Initialize ContextMenuManager
+            cm = new ContextMenuManager();
+            cm.init();
 
             // Setup all components
             startBoot();
