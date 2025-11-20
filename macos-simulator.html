@@ -146,6 +146,11 @@
             50% { background-position: 100% 100%; }
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         /* ==================== 4. BOOT SCREEN ==================== */
         .boot-screen {
             position: fixed;
@@ -413,14 +418,210 @@
         }
 
         .system-icon {
-            width: 16px;
-            height: 16px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .system-icon:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .system-icon i {
+            font-size: 14px;
+        }
+
+        .battery-container {
+            gap: 2px;
+        }
+
+        #batteryPercent {
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .clock {
             font-size: 13px;
             font-weight: 400;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .clock:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Menu Dropdown Container */
+        #menuDropdownContainer {
+            position: fixed;
+            top: 28px;
+            left: 0;
+            z-index: 10000;
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 4px 0;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+        }
+
+        .menu-dropdown.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .menu-dropdown-item {
+            padding: 6px 16px 6px 24px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-dropdown-item:hover:not(.disabled) {
+            background: var(--macos-blue);
+            color: #fff;
+        }
+
+        .menu-dropdown-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .menu-dropdown-shortcut {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-left: 24px;
+        }
+
+        /* Spotlight */
+        .spotlight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            z-index: 10001;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 20vh;
+        }
+
+        .spotlight-overlay.visible {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .spotlight-search {
+            width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .spotlight-icon {
+            font-size: 20px;
+            color: #666;
+        }
+
+        #spotlightInput {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 28px;
+            font-weight: 300;
+            outline: none;
+            color: #000;
+        }
+
+        #spotlightInput::placeholder {
+            color: #999;
+        }
+
+        .spotlight-results {
+            width: 600px;
+            max-height: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: none;
+        }
+
+        .spotlight-results.visible {
+            display: block;
+        }
+
+        .spotlight-result-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .spotlight-result-item.selected {
+            background: var(--macos-blue);
+            color: #fff;
+        }
+
+        .spotlight-result-item:hover {
+            background: rgba(0, 122, 255, 0.1);
+        }
+
+        .spotlight-result-item.selected:hover {
+            background: var(--macos-blue);
+        }
+
+        .spotlight-result-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .spotlight-result-info {
+            flex: 1;
+        }
+
+        .spotlight-result-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .spotlight-result-type {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 2px;
         }
 
         /* ==================== 7. DOCK ==================== */
@@ -1577,35 +1778,47 @@
     <!-- ==================== MENU BAR ==================== -->
     <div class="menu-bar" id="menuBar">
         <div class="menu-bar-left">
-            <div class="menu-item" id="appleMenu">
-                <svg class="apple-menu-logo" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.1,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z"/>
+            <div class="menu-item" id="appleMenu" data-menu="apple">
+                <svg class="apple-menu-logo" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M11.182 2.087c-.358-.483-.904-.817-1.545-.817a2.287 2.287 0 0 0-1.302.413c-.37.257-.65.61-.818 1.025-.169-.416-.449-.769-.818-1.026a2.287 2.287 0 0 0-1.302-.412c-.64 0-1.186.334-1.544.817C2.734 3.516 2.5 5.455 2.5 7.5c0 3.59 1.273 6.5 2.841 6.5.771 0 1.386-.5 2.159-.5s1.388.5 2.159.5C11.227 14 12.5 11.09 12.5 7.5c0-2.045-.234-3.984-1.318-5.413zm-1.567-.337c.266 0 .513.09.724.245a1.287 1.287 0 0 1 .456.644 1.287 1.287 0 0 1-.456.644 1.104 1.104 0 0 1-.724.245c-.266 0-.513-.09-.724-.245a1.287 1.287 0 0 1-.456-.644c.114-.266.258-.483.456-.644.211-.155.458-.245.724-.245z"/>
                 </svg>
-                <div class="menu-dropdown" id="appleMenuDropdown">
-                    <div class="menu-dropdown-item">About This Mac</div>
-                    <div class="menu-dropdown-separator"></div>
-                    <div class="menu-dropdown-item">System Preferences...</div>
-                    <div class="menu-dropdown-item">App Store...</div>
-                    <div class="menu-dropdown-separator"></div>
-                    <div class="menu-dropdown-item">Sleep</div>
-                    <div class="menu-dropdown-item">Restart...</div>
-                    <div class="menu-dropdown-item">Shut Down...</div>
-                </div>
             </div>
             <div class="app-name" id="appName">Finder</div>
-            <div class="menu-item">File</div>
-            <div class="menu-item">Edit</div>
-            <div class="menu-item">View</div>
-            <div class="menu-item">Go</div>
-            <div class="menu-item">Window</div>
-            <div class="menu-item">Help</div>
+            <div class="menu-item" data-menu="file">File</div>
+            <div class="menu-item" data-menu="edit">Edit</div>
+            <div class="menu-item" data-menu="view">View</div>
+            <div class="menu-item" data-menu="go">Go</div>
+            <div class="menu-item" data-menu="window">Window</div>
+            <div class="menu-item" data-menu="help">Help</div>
         </div>
         <div class="menu-bar-right">
-            <i class="fa-solid fa-magnifying-glass system-icon"></i>
-            <i class="fa-solid fa-wifi system-icon"></i>
-            <i class="fa-solid fa-battery-three-quarters system-icon"></i>
-            <div class="clock" id="clock">12:00 PM</div>
+            <div class="system-icon" id="spotlightIcon" title="Spotlight">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <div class="system-icon" id="controlCenter" title="Control Center">
+                <i class="fa-solid fa-toggle-on"></i>
+            </div>
+            <div class="system-icon battery-container" title="Battery">
+                <i class="fa-solid fa-battery-full" id="batteryIcon"></i>
+                <span id="batteryPercent"></span>
+            </div>
+            <div class="system-icon" title="Wi-Fi">
+                <i class="fa-solid fa-wifi"></i>
+            </div>
+            <div class="clock" id="menubarClock">Tue Jan 9 9:41 AM</div>
         </div>
+    </div>
+
+    <!-- Dropdown Menus Container -->
+    <div id="menuDropdownContainer"></div>
+
+    <!-- Spotlight Modal -->
+    <div class="spotlight-overlay" id="spotlightOverlay">
+        <div class="spotlight-search">
+            <i class="fa-solid fa-magnifying-glass spotlight-icon"></i>
+            <input type="text" id="spotlightInput" placeholder="Spotlight Search" autocomplete="off">
+        </div>
+        <div class="spotlight-results" id="spotlightResults"></div>
     </div>
 
     <!-- ==================== DOCK ==================== -->
@@ -2504,18 +2717,344 @@ Start typing to create your document...</div>
                 $('#bootScreen').addClass('hidden');
                 $('#desktop').addClass('visible');
                 updateClock();
-                setInterval(updateClock, CONFIG.CLOCK_UPDATE_INTERVAL);
+                setInterval(updateClock, 1000); // Update every second
+                updateBattery();
                 loadSavedWallpaper();
             }, CONFIG.BOOT_DURATION);
         }
 
         function updateClock() {
             const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            $('#clock').text(`${displayHours}:${minutes} ${ampm}`);
+            const options = {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            };
+            const formatted = now.toLocaleString('en-US', options);
+            $('#menubarClock').text(formatted);
+        }
+
+        async function updateBattery() {
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    const level = Math.round(battery.level * 100);
+                    const charging = battery.charging;
+
+                    $('#batteryPercent').text(level + '%');
+
+                    // Update icon based on level
+                    let icon = 'fa-battery-full';
+                    if (charging) {
+                        icon = 'fa-bolt';
+                    } else if (level < 20) {
+                        icon = 'fa-battery-empty';
+                    } else if (level < 40) {
+                        icon = 'fa-battery-quarter';
+                    } else if (level < 60) {
+                        icon = 'fa-battery-half';
+                    } else if (level < 80) {
+                        icon = 'fa-battery-three-quarters';
+                    }
+
+                    $('#batteryIcon').attr('class', `fas ${icon}`);
+
+                    // Listen for changes
+                    battery.addEventListener('levelchange', updateBattery);
+                    battery.addEventListener('chargingchange', updateBattery);
+                } catch (error) {
+                    // Fallback: show static 100%
+                    $('#batteryPercent').text('100%');
+                }
+            } else {
+                // Fallback: show static 100%
+                $('#batteryPercent').text('100%');
+            }
+        }
+
+        // ==================== 4.5. MENU BAR SYSTEM ====================
+        const MENU_ITEMS = {
+            apple: [
+                { label: 'About This Mac', action: 'aboutMac' },
+                { type: 'separator' },
+                { label: 'System Settings...', action: () => windowManager.open('settings') },
+                { label: 'App Store...', disabled: true },
+                { type: 'separator' },
+                { label: 'Sleep', action: 'sleep' },
+                { label: 'Restart...', action: 'restart' },
+                { label: 'Shut Down...', action: 'shutdown' }
+            ],
+            file: [
+                { label: 'New Window', shortcut: '⌘N', action: () => windowManager.open('finder') },
+                { label: 'New Tab', shortcut: '⌘T', disabled: true },
+                { type: 'separator' },
+                { label: 'Close Window', shortcut: '⌘W', action: () => {
+                    if (windowManager.activeWindow) windowManager.close($(windowManager.activeWindow));
+                }}
+            ],
+            edit: [
+                { label: 'Undo', shortcut: '⌘Z', disabled: true },
+                { label: 'Redo', shortcut: '⇧⌘Z', disabled: true },
+                { type: 'separator' },
+                { label: 'Cut', shortcut: '⌘X', disabled: true },
+                { label: 'Copy', shortcut: '⌘C', disabled: true },
+                { label: 'Paste', shortcut: '⌘V', disabled: true }
+            ],
+            view: [
+                { label: 'Show Toolbar', disabled: true },
+                { label: 'Customize Toolbar...', disabled: true },
+                { type: 'separator' },
+                { label: 'Show Tab Bar', disabled: true },
+                { label: 'Show All Tabs', disabled: true }
+            ],
+            go: [
+                { label: 'Back', shortcut: '⌘[', disabled: true },
+                { label: 'Forward', shortcut: '⌘]', disabled: true },
+                { type: 'separator' },
+                { label: 'Documents', shortcut: '⇧⌘O', disabled: true },
+                { label: 'Desktop', shortcut: '⇧⌘D', disabled: true },
+                { label: 'Downloads', shortcut: '⌥⌘L', disabled: true }
+            ],
+            window: [
+                { label: 'Minimize', shortcut: '⌘M', action: () => {
+                    if (windowManager.activeWindow) windowManager.minimize($(windowManager.activeWindow));
+                }},
+                { label: 'Zoom', disabled: true },
+                { type: 'separator' },
+                { label: 'Bring All to Front', disabled: true }
+            ],
+            help: [
+                { label: 'macOS Simulator Help', disabled: true },
+                { type: 'separator' },
+                { label: 'Send Feedback', disabled: true }
+            ]
+        };
+
+        let activeMenu = null;
+
+        function setupMenuBar() {
+            // Menu item clicks
+            $('.menu-item[data-menu]').on('click', function() {
+                const menuName = $(this).data('menu');
+                if (activeMenu === menuName) {
+                    closeAllMenus();
+                } else {
+                    showMenu(menuName, $(this));
+                }
+            });
+
+            // Hover to switch menus
+            $('.menu-item[data-menu]').on('mouseenter', function() {
+                if (activeMenu) {
+                    const menuName = $(this).data('menu');
+                    showMenu(menuName, $(this));
+                }
+            });
+
+            // Click outside to close
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.menu-item, .menu-dropdown').length) {
+                    closeAllMenus();
+                }
+            });
+
+            // ESC to close
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAllMenus();
+                    closeSpotlight();
+                }
+            });
+        }
+
+        function showMenu(menuName, $menuItem) {
+            closeAllMenus();
+            activeMenu = menuName;
+
+            const items = MENU_ITEMS[menuName];
+            if (!items) return;
+
+            const $dropdown = $('<div class="menu-dropdown visible"></div>');
+
+            items.forEach(item => {
+                if (item.type === 'separator') {
+                    $dropdown.append('<div class="menu-dropdown-separator"></div>');
+                } else {
+                    const $item = $(`
+                        <div class="menu-dropdown-item ${item.disabled ? 'disabled' : ''}">
+                            <span>${item.label}</span>
+                            ${item.shortcut ? `<span class="menu-dropdown-shortcut">${item.shortcut}</span>` : ''}
+                        </div>
+                    `);
+
+                    if (!item.disabled && item.action) {
+                        $item.on('click', () => {
+                            if (typeof item.action === 'function') {
+                                item.action();
+                            } else if (item.action === 'aboutMac') {
+                                alert('macOS Simulator\nVersion 1.0\nBuilt with HTML, CSS, and JavaScript');
+                            } else if (item.action === 'sleep') {
+                                $('body').css('opacity', '0');
+                                setTimeout(() => $('body').css('opacity', '1'), 2000);
+                            } else if (item.action === 'restart' || item.action === 'shutdown') {
+                                if (confirm('Are you sure you want to ' + (item.action === 'restart' ? 'restart' : 'shut down') + '?')) {
+                                    location.reload();
+                                }
+                            }
+                            closeAllMenus();
+                        });
+                    }
+
+                    $dropdown.append($item);
+                }
+            });
+
+            const offset = $menuItem.offset();
+            $dropdown.css({
+                left: offset.left + 'px',
+                top: '28px'
+            });
+
+            $('#menuDropdownContainer').append($dropdown);
+            $menuItem.addClass('active');
+        }
+
+        function closeAllMenus() {
+            $('#menuDropdownContainer').empty();
+            $('.menu-item').removeClass('active');
+            activeMenu = null;
+        }
+
+        // Spotlight
+        let spotlightResults = [];
+        let selectedSpotlightIndex = 0;
+
+        function setupSpotlight() {
+            $('#spotlightIcon').on('click', openSpotlight);
+
+            // Cmd+Space shortcut
+            $(document).on('keydown', function(e) {
+                if (e.metaKey && e.code === 'Space') {
+                    e.preventDefault();
+                    openSpotlight();
+                }
+            });
+
+            $('#spotlightOverlay').on('click', function(e) {
+                if (e.target === this) {
+                    closeSpotlight();
+                }
+            });
+
+            $('#spotlightInput').on('input', function() {
+                const query = $(this).val().toLowerCase();
+                if (query.length > 0) {
+                    searchSpotlight(query);
+                } else {
+                    $('#spotlightResults').removeClass('visible').empty();
+                }
+            });
+
+            $('#spotlightInput').on('keydown', function(e) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedSpotlightIndex = Math.min(selectedSpotlightIndex + 1, spotlightResults.length - 1);
+                    updateSpotlightSelection();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedSpotlightIndex = Math.max(selectedSpotlightIndex - 1, 0);
+                    updateSpotlightSelection();
+                } else if (e.key === 'Enter' && spotlightResults.length > 0) {
+                    e.preventDefault();
+                    openSpotlightResult(spotlightResults[selectedSpotlightIndex]);
+                }
+            });
+        }
+
+        function openSpotlight() {
+            $('#spotlightOverlay').addClass('visible');
+            $('#spotlightInput').val('').focus();
+            $('#spotlightResults').removeClass('visible').empty();
+            selectedSpotlightIndex = 0;
+        }
+
+        function closeSpotlight() {
+            $('#spotlightOverlay').removeClass('visible');
+        }
+
+        function searchSpotlight(query) {
+            spotlightResults = [];
+
+            // Search apps
+            const apps = [
+                { name: 'Finder', type: 'Application', icon: 'fa-folder', app: 'finder' },
+                { name: 'Safari', type: 'Application', icon: 'fa-compass', app: 'safari' },
+                { name: 'TextEdit', type: 'Application', icon: 'fa-file-lines', app: 'textedit' },
+                { name: 'Settings', type: 'Application', icon: 'fa-gear', app: 'settings' }
+            ];
+
+            apps.forEach(app => {
+                if (app.name.toLowerCase().includes(query)) {
+                    spotlightResults.push(app);
+                }
+            });
+
+            // Search files
+            FINDER_FILES.forEach(file => {
+                if (file.name.toLowerCase().includes(query)) {
+                    spotlightResults.push({
+                        name: file.name,
+                        type: 'Document',
+                        icon: 'fa-file'
+                    });
+                }
+            });
+
+            displaySpotlightResults();
+        }
+
+        function displaySpotlightResults() {
+            const $results = $('#spotlightResults');
+            $results.empty();
+
+            if (spotlightResults.length === 0) {
+                $results.removeClass('visible');
+                return;
+            }
+
+            spotlightResults.forEach((result, index) => {
+                const $item = $(`
+                    <div class="spotlight-result-item ${index === selectedSpotlightIndex ? 'selected' : ''}" data-index="${index}">
+                        <div class="spotlight-result-icon">
+                            <i class="fa-solid ${result.icon}"></i>
+                        </div>
+                        <div class="spotlight-result-info">
+                            <div class="spotlight-result-name">${result.name}</div>
+                            <div class="spotlight-result-type">${result.type}</div>
+                        </div>
+                    </div>
+                `);
+
+                $item.on('click', () => openSpotlightResult(result));
+                $results.append($item);
+            });
+
+            $results.addClass('visible');
+        }
+
+        function updateSpotlightSelection() {
+            $('.spotlight-result-item').removeClass('selected');
+            $(`.spotlight-result-item[data-index="${selectedSpotlightIndex}"]`).addClass('selected');
+        }
+
+        function openSpotlightResult(result) {
+            if (result.app) {
+                windowManager.open(result.app);
+            }
+            closeSpotlight();
         }
 
         // ==================== 5. DOCK SYSTEM ====================
@@ -2760,6 +3299,7 @@ Start typing to create your document...</div>
             startBoot();
             setupDock();
             setupMenuBar();
+            setupSpotlight();
             setupDesktopIcons();
             setupContextMenus();
             setupKeyboardShortcuts();
