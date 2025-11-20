@@ -103,6 +103,7 @@
             background: #000;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            cursor: default;
         }
 
         button {
@@ -110,6 +111,47 @@
             background: none;
             cursor: pointer;
             font-family: inherit;
+        }
+
+        /* Cursor styles */
+        .window-titlebar {
+            cursor: move;
+        }
+
+        .window-titlebar:active {
+            cursor: grabbing;
+        }
+
+        input, textarea, [contenteditable="true"] {
+            cursor: text;
+        }
+
+        .disabled, [disabled] {
+            cursor: not-allowed !important;
+        }
+
+        .dock-icon, .menu-item, .context-menu-item, .traffic-btn {
+            cursor: pointer;
+        }
+
+        .ui-resizable-handle {
+            cursor: nwse-resize;
+        }
+
+        .ui-resizable-n, .ui-resizable-s {
+            cursor: ns-resize;
+        }
+
+        .ui-resizable-e, .ui-resizable-w {
+            cursor: ew-resize;
+        }
+
+        .ui-resizable-ne, .ui-resizable-sw {
+            cursor: nesw-resize;
+        }
+
+        .ui-resizable-nw, .ui-resizable-se {
+            cursor: nwse-resize;
         }
 
         /* ==================== 3. ANIMATIONS & KEYFRAMES ==================== */
@@ -2871,6 +2913,92 @@ Start typing to create your document...</div>
             particleSystem: null
         };
 
+        // ==================== 2.5. UTILITY FUNCTIONS ====================
+
+        // Throttle: Limit execution rate (for continuous events)
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+
+        // Debounce: Wait for pause before executing (for input events)
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        // Safe execution with error handling
+        function safeExecute(fn, fallback = null) {
+            try {
+                return fn();
+            } catch (error) {
+                console.error('Safe execute error:', error);
+                return fallback;
+            }
+        }
+
+        // LocalStorage Preferences System
+        const preferences = {
+            wallpaper: 'monterey',
+            soundsEnabled: false,
+            appearance: 'light',
+            lastOpenApps: [],
+            windowPositions: {},
+            textEditContent: '',
+            get: function(key) {
+                return this[key];
+            },
+            set: function(key, value) {
+                this[key] = value;
+                this.save();
+            },
+            save: function() {
+                try {
+                    localStorage.setItem('macos-preferences', JSON.stringify({
+                        wallpaper: this.wallpaper,
+                        soundsEnabled: this.soundsEnabled,
+                        appearance: this.appearance,
+                        lastOpenApps: Array.from(state.openApps || []),
+                        windowPositions: this.windowPositions,
+                        textEditContent: this.textEditContent
+                    }));
+                } catch (e) {
+                    console.warn('Could not save preferences:', e);
+                }
+            },
+            load: function() {
+                try {
+                    const saved = localStorage.getItem('macos-preferences');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        Object.assign(this, data);
+                        return true;
+                    }
+                } catch (e) {
+                    console.warn('Could not load preferences:', e);
+                }
+                return false;
+            }
+        };
+
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+
         // ==================== 3. WINDOW MANAGER CLASS ====================
         class WindowManager {
             constructor() {
@@ -3256,7 +3384,7 @@ Start typing to create your document...</div>
                 let matrixAnimationId = null;
 
                 const commands = {
-                    help: () => 'Available commands: help, clear, ls, cd, pwd, whoami, date, echo, cat, uname, history, matrix, sudo',
+                    help: () => 'Available commands: help, clear, ls, cd, pwd, whoami, date, echo, cat, uname, history, matrix, sudo, about, credits',
                     clear: () => { $output.empty(); return ''; },
                     ls: () => 'Desktop\t\tDocuments\tDownloads\tApplications\tPictures\tMusic',
                     cd: (args) => args[0] ? `cd: ${args[0]}: No such file or directory` : '',
@@ -3278,7 +3406,36 @@ Start typing to create your document...</div>
                             return 'Matrix effect enabled - "The Matrix has you..."';
                         }
                     },
-                    sudo: () => 'Nice try! 😄'
+                    sudo: () => 'Nice try! 😄',
+                    about: () => `macOS Simulator v1.0
+Built with HTML, CSS, and JavaScript
+A single-file recreation of the macOS interface
+Type 'credits' for more info`,
+                    credits: () => `macOS Simulator Credits
+
+Created as a demonstration of modern web technologies:
+- jQuery & jQuery UI for DOM manipulation
+- Font Awesome for icons
+- CSS3 animations & transitions
+- HTML5 Canvas for graphics
+- LocalStorage for persistence
+
+Features:
+- Functional Terminal with Matrix effect
+- Working Calculator
+- Paint/Drawing app
+- Safari browser simulation
+- TextEdit with formatting
+- Settings with wallpaper system
+- Complete keyboard shortcuts
+- Context menus
+- Smooth animations
+
+Thank you for exploring!`,
+                    42: () => 'The answer to life, the universe, and everything!',
+                    'konami': () => 'Up, Up, Down, Down, Left, Right, Left, Right, B, A - You found it!',
+                    'make me a sandwich': () => 'What? Make it yourself.',
+                    'sudo make me a sandwich': () => 'Okay. 🥪'
                 };
 
                 function startMatrix() {
@@ -4944,6 +5101,9 @@ Start typing to create your document...</div>
             cm = new ContextMenuManager();
             cm.init();
 
+            // Load user preferences
+            preferences.load();
+
             // Setup all components
             startBoot();
             setupDock();
@@ -4953,10 +5113,25 @@ Start typing to create your document...</div>
             setupContextMenus();
             setupKeyboardShortcuts();
 
+            // Apply loaded wallpaper preference
+            if (preferences.wallpaper) {
+                setWallpaper(preferences.wallpaper);
+            }
+
             // Auto-open Finder after boot
             setTimeout(() => {
                 windowManager.open('finder');
+
+                // Save preferences when app state changes
+                setInterval(() => {
+                    preferences.save();
+                }, 5000); // Auto-save every 5 seconds
             }, CONFIG.BOOT_DURATION + CONFIG.FINDER_OPEN_DELAY);
+
+            // Save preferences before page unload
+            window.addEventListener('beforeunload', () => {
+                preferences.save();
+            });
         });
     </script>
 </body>
