@@ -2151,32 +2151,110 @@ Start typing to create your document...</div>
         };
 
         // Sample files for Finder
-        const FINDER_FILES = [
-            { name: 'Documents', type: 'folder' },
-            { name: 'Photos', type: 'folder' },
-            { name: 'Music', type: 'folder' },
-            { name: 'Videos', type: 'folder' },
-            { name: 'Downloads', type: 'folder' },
-            { name: 'Desktop', type: 'folder' },
-            { name: 'Resume.pdf', type: 'pdf' },
-            { name: 'Project_Proposal.pdf', type: 'pdf' },
-            { name: 'Vacation.jpg', type: 'image' },
-            { name: 'Family_Photo.jpg', type: 'image' },
-            { name: 'Screenshot.png', type: 'image' },
-            { name: 'Wallpaper.jpg', type: 'image' },
-            { name: 'Tutorial.mp4', type: 'video' },
-            { name: 'Presentation.mp4', type: 'video' },
-            { name: 'Song.mp3', type: 'audio' },
-            { name: 'Podcast.mp3', type: 'audio' },
-            { name: 'Notes.txt', type: 'text' },
-            { name: 'TODO.txt', type: 'text' },
-            { name: 'Archive.zip', type: 'zip' },
-            { name: 'Backup.zip', type: 'zip' },
-            { name: 'Calculator.app', type: 'app' },
-            { name: 'Safari.app', type: 'app' },
-            { name: 'Spreadsheet.xlsx', type: 'text' },
-            { name: 'Budget.xlsx', type: 'text' }
-        ];
+        const FILE_SYSTEM = {
+            name: 'Macintosh HD',
+            type: 'volume',
+            children: {
+                'Desktop': {
+                    type: 'folder',
+                    icon: 'fa-desktop',
+                    children: {
+                        'Welcome.txt': {
+                            type: 'file',
+                            icon: 'fa-file-lines',
+                            content: 'Welcome to macOS Simulator!\n\nThis is a fully functional file system with navigable folders and openable files.\n\nYou can:\n- Navigate folders by double-clicking\n- Use back/forward buttons\n- Switch between grid, list, and column views\n- Search for files\n- Open files in apps\n\nEnjoy exploring!',
+                            size: '2 KB',
+                            modified: 'Jan 9, 2024'
+                        },
+                        'Projects': {
+                            type: 'folder',
+                            icon: 'fa-folder',
+                            children: {
+                                'Website': {
+                                    type: 'folder',
+                                    icon: 'fa-folder',
+                                    children: {
+                                        'index.html': { type: 'file', icon: 'fa-file-code', content: '<!DOCTYPE html>\n<html>\n<head>\n  <title>My Website</title>\n</head>\n<body>\n  <h1>Hello World!</h1>\n</body>\n</html>', size: '256 B', modified: 'Jan 8, 2024' }
+                                    }
+                                },
+                                'App': { type: 'folder', icon: 'fa-folder', children: {} },
+                                'README.md': { type: 'file', icon: 'fa-file-lines', content: '# My Projects\n\nThis folder contains my coding projects.', size: '1 KB', modified: 'Jan 7, 2024' }
+                            }
+                        },
+                        'Screenshot 2024.png': {
+                            type: 'image',
+                            icon: 'fa-file-image',
+                            size: '1.2 MB',
+                            modified: 'Jan 9, 2024'
+                        }
+                    }
+                },
+                'Documents': {
+                    type: 'folder',
+                    icon: 'fa-file-lines',
+                    children: {
+                        'Notes.txt': {
+                            type: 'file',
+                            icon: 'fa-file-lines',
+                            content: 'Meeting notes from January 9, 2024\n\n- Discussed project timeline\n- Set up next milestones\n- Reviewed budget',
+                            size: '4 KB',
+                            modified: 'Jan 9, 2024'
+                        },
+                        'Resume.pdf': { type: 'file', icon: 'fa-file-pdf', size: '156 KB', modified: 'Jan 5, 2024' },
+                        'Budget.xlsx': { type: 'file', icon: 'fa-file-excel', size: '24 KB', modified: 'Jan 3, 2024' },
+                        'Work': {
+                            type: 'folder',
+                            icon: 'fa-folder',
+                            children: {
+                                'Report Q1.pdf': { type: 'file', icon: 'fa-file-pdf', size: '89 KB', modified: 'Jan 2, 2024' }
+                            }
+                        }
+                    }
+                },
+                'Downloads': {
+                    type: 'folder',
+                    icon: 'fa-download',
+                    children: {
+                        'installer.dmg': { type: 'file', icon: 'fa-file', size: '89 MB', modified: 'Jan 8, 2024' },
+                        'image.jpg': { type: 'image', icon: 'fa-file-image', size: '2.1 MB', modified: 'Jan 7, 2024' },
+                        'document.pdf': { type: 'file', icon: 'fa-file-pdf', size: '456 KB', modified: 'Jan 6, 2024' }
+                    }
+                },
+                'Applications': {
+                    type: 'folder',
+                    icon: 'fa-th',
+                    children: {
+                        'Safari.app': { type: 'app', icon: 'fa-compass', appId: 'safari' },
+                        'TextEdit.app': { type: 'app', icon: 'fa-file-lines', appId: 'textedit' },
+                        'Settings.app': { type: 'app', icon: 'fa-gear', appId: 'settings' }
+                    }
+                },
+                'Pictures': {
+                    type: 'folder',
+                    icon: 'fa-images',
+                    children: {
+                        'Vacation 2024': {
+                            type: 'folder',
+                            icon: 'fa-folder',
+                            children: {
+                                'beach.jpg': { type: 'image', icon: 'fa-file-image', size: '3.2 MB', modified: 'Jan 1, 2024' }
+                            }
+                        }
+                    }
+                },
+                'Music': {
+                    type: 'folder',
+                    icon: 'fa-music',
+                    children: {}
+                }
+            }
+        };
+
+        // Finder state
+        let finderCurrentPath = ['Desktop'];
+        let finderHistory = { past: [], future: [] };
+        let finderViewMode = 'grid';
+        let finderSearchQuery = '';
 
         // Wallpaper system
         const WALLPAPERS = [
