@@ -158,9 +158,10 @@
         }
 
         .desktop-icon svg {
-            width: 48px;
-            height: 48px;
+            width: 64px;
+            height: 64px;
             margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .desktop-icon-label {
@@ -243,7 +244,7 @@
 
         .menu-dropdown.visible {
             display: block;
-            animation: slideDown 0.2s ease-out;
+            animation: slideDown 0.15s ease-out;
         }
 
         @keyframes slideDown {
@@ -310,16 +311,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .dock-icon:hover {
-            transform: scale(1.3) translateY(-8px);
+            transform-origin: bottom;
         }
 
         .dock-icon svg, .dock-icon img {
             width: 100%;
             height: 100%;
-            border-radius: 12px;
         }
 
         .dock-separator {
@@ -341,12 +338,14 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            0%, 100% { transform: translateY(0) scale(1); }
+            25% { transform: translateY(-25px) scale(1); }
+            50% { transform: translateY(0) scale(1); }
+            75% { transform: translateY(-12px) scale(1); }
         }
 
         .dock-icon.bouncing {
-            animation: bounce 0.6s ease-in-out 3;
+            animation: bounce 0.8s ease-in-out 2;
         }
 
         /* ==================== 7. WINDOWS ==================== */
@@ -368,7 +367,8 @@
             overflow: hidden;
             display: none;
             pointer-events: auto;
-            transition: opacity 0.3s, transform 0.3s;
+            min-width: 400px;
+            min-height: 300px;
         }
 
         .window.visible {
@@ -378,17 +378,17 @@
         }
 
         .window.closing {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-
-        .window.minimizing {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: windowClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
         @keyframes windowOpen {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            from { opacity: 0; transform: scale(0.85) translateY(30px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes windowClose {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
         }
 
         .window-titlebar {
@@ -461,14 +461,80 @@
             color: #000;
         }
 
-        .window-toolbar {
-            flex: 1;
-        }
-
         .window-content {
             flex: 1;
             overflow: auto;
             background: #fff;
+        }
+
+        /* Resize handles */
+        .resize-handle {
+            position: absolute;
+            z-index: 10;
+        }
+
+        .resize-n {
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            cursor: ns-resize;
+        }
+
+        .resize-s {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            cursor: ns-resize;
+        }
+
+        .resize-e {
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            cursor: ew-resize;
+        }
+
+        .resize-w {
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            cursor: ew-resize;
+        }
+
+        .resize-ne {
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            cursor: nesw-resize;
+        }
+
+        .resize-nw {
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            cursor: nwse-resize;
+        }
+
+        .resize-se {
+            bottom: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            cursor: nwse-resize;
+        }
+
+        .resize-sw {
+            bottom: 0;
+            left: 0;
+            width: 8px;
+            height: 8px;
+            cursor: nesw-resize;
         }
 
         /* ==================== 8. FINDER APP ==================== */
@@ -507,6 +573,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .sidebar-item svg {
+            width: 16px;
+            height: 16px;
         }
 
         .sidebar-item:hover {
@@ -580,8 +651,9 @@
             background: rgba(0, 122, 255, 0.1);
         }
 
-        .file-icon {
-            font-size: 48px;
+        .file-item svg {
+            width: 48px;
+            height: 48px;
             margin-bottom: 8px;
         }
 
@@ -651,6 +723,7 @@
             flex: 1;
             background: #fff;
             overflow: auto;
+            position: relative;
         }
 
         .safari-iframe {
@@ -751,7 +824,7 @@
 
         .context-menu.visible {
             display: block;
-            animation: contextMenuAppear 0.2s ease-out;
+            animation: contextMenuAppear 0.15s ease-out;
         }
 
         @keyframes contextMenuAppear {
@@ -806,14 +879,31 @@
         <!-- Desktop Icons -->
         <div class="desktop-icons">
             <div class="desktop-icon" data-app="finder">
-                <svg viewBox="0 0 24 24" fill="#3B82F6">
-                    <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
+                <svg viewBox="0 0 64 64">
+                    <defs>
+                        <linearGradient id="folderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#66B3FF;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#3399FF;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="8" y="20" width="48" height="36" rx="4" fill="url(#folderGrad)"/>
+                    <path d="M8 20h20l4-8h24c2 0 4 2 4 4v4H8v-0z" fill="#66B3FF"/>
+                    <circle cx="32" cy="40" r="6" fill="white" opacity="0.8"/>
+                    <path d="M32 36v8M28 40h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <div class="desktop-icon-label">Documents</div>
             </div>
             <div class="desktop-icon" data-app="finder">
-                <svg viewBox="0 0 24 24" fill="#EF4444">
-                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                <svg viewBox="0 0 64 64">
+                    <defs>
+                        <linearGradient id="photoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#FF4757;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="8" y="12" width="48" height="40" rx="4" fill="url(#photoGrad)"/>
+                    <circle cx="20" cy="24" r="4" fill="white" opacity="0.9"/>
+                    <path d="M8 42l12-12 8 8 12-12 12 8v18H8z" fill="white" opacity="0.4"/>
                 </svg>
                 <div class="desktop-icon-label">Photos</div>
             </div>
@@ -854,7 +944,7 @@
                 <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
             </svg>
             <svg class="system-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zM13 18h-2v-2h2v2zm0-4h-2V9h2v5z"/>
+                <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4zm-2.34 14h-2.67v-1.33h2.67V18zm0-2.67h-2.67v-8h2.67v8z"/>
             </svg>
             <div class="clock" id="clock">12:00 PM</div>
         </div>
@@ -862,45 +952,105 @@
 
     <!-- ==================== DOCK ==================== -->
     <div class="dock" id="dock">
-        <div class="dock-icon" data-app="finder" title="Finder">
-            <svg viewBox="0 0 24 24" fill="#3B82F6">
-                <rect width="24" height="24" rx="4" fill="#3B82F6"/>
-                <path d="M8 7h4v2H8V7zm0 4h8v2H8v-2zm0 4h6v2H8v-2z" fill="white"/>
+        <div class="dock-icon" data-app="finder" data-index="0" title="Finder">
+            <svg viewBox="0 0 64 64">
+                <defs>
+                    <linearGradient id="finderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4A9EFF;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="64" height="64" rx="14" fill="url(#finderGrad)"/>
+                <circle cx="32" cy="28" r="10" fill="white" opacity="0.9"/>
+                <path d="M32 24v8M28 28h8" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M20 46h24c2 0 3-1 3-3v-6H17v6c0 2 1 3 3 3z" fill="white" opacity="0.8"/>
             </svg>
             <div class="running-indicator"></div>
         </div>
-        <div class="dock-icon" data-app="safari" title="Safari">
-            <svg viewBox="0 0 24 24" fill="#0EA5E9">
-                <rect width="24" height="24" rx="4" fill="#0EA5E9"/>
-                <circle cx="12" cy="12" r="6" stroke="white" stroke-width="1.5" fill="none"/>
-                <path d="M12 6v12M6 12h12" stroke="white" stroke-width="1"/>
+        <div class="dock-icon" data-app="safari" data-index="1" title="Safari">
+            <svg viewBox="0 0 64 64">
+                <defs>
+                    <linearGradient id="safariGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#0EA5E9;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0284C7;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="64" height="64" rx="14" fill="url(#safariGrad)"/>
+                <circle cx="32" cy="32" r="18" stroke="white" stroke-width="2.5" fill="none"/>
+                <circle cx="32" cy="32" r="3" fill="white"/>
+                <path d="M32 14v6M32 44v6M14 32h6M44 32h6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M24 24l16 16" stroke="white" stroke-width="2" stroke-linecap="round"/>
             </svg>
         </div>
-        <div class="dock-icon" data-app="textedit" title="TextEdit">
-            <svg viewBox="0 0 24 24" fill="#FBBF24">
-                <rect width="24" height="24" rx="4" fill="#FBBF24"/>
-                <path d="M7 17h10M7 13h10M7 9h10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <div class="dock-icon" data-app="textedit" data-index="2" title="TextEdit">
+            <svg viewBox="0 0 64 64">
+                <defs>
+                    <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FBBF24;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="64" height="64" rx="14" fill="url(#textGrad)"/>
+                <rect x="16" y="16" width="32" height="32" rx="2" fill="white" opacity="0.95"/>
+                <line x1="20" y1="24" x2="44" y2="24" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+                <line x1="20" y1="32" x2="44" y2="32" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+                <line x1="20" y1="40" x2="36" y2="40" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
             </svg>
         </div>
-        <div class="dock-icon" data-app="mail" title="Mail">
-            <svg viewBox="0 0 24 24" fill="#3B82F6">
-                <rect width="24" height="24" rx="4" fill="#3B82F6"/>
-                <path d="M4 8l8 5 8-5v8H4V8z" fill="white"/>
+        <div class="dock-icon" data-app="mail" data-index="3" title="Mail">
+            <svg viewBox="0 0 64 64">
+                <defs>
+                    <linearGradient id="mailGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="64" height="64" rx="14" fill="url(#mailGrad)"/>
+                <rect x="12" y="20" width="40" height="28" rx="2" fill="white" opacity="0.95"/>
+                <path d="M12 20l20 16 20-16" stroke="#1D4ED8" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
             </svg>
         </div>
         <div class="dock-separator"></div>
-        <div class="dock-icon" data-app="trash" title="Trash">
-            <svg viewBox="0 0 24 24" fill="#94A3B8">
-                <rect width="24" height="24" rx="4" fill="#94A3B8"/>
-                <path d="M9 3v2h6V3h2v2h2v2H5V5h2V3h2zm-2 6h10v10H7V9z" fill="white"/>
+        <div class="dock-icon" data-app="trash" data-index="5" title="Trash">
+            <svg viewBox="0 0 64 64">
+                <defs>
+                    <linearGradient id="trashGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#94A3B8;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#64748B;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="64" height="64" rx="14" fill="url(#trashGrad)"/>
+                <rect x="18" y="26" width="28" height="24" rx="2" fill="white" opacity="0.9"/>
+                <rect x="16" y="22" width="32" height="4" rx="1" fill="white" opacity="0.9"/>
+                <rect x="24" y="14" width="16" height="8" rx="1" fill="white" opacity="0.7"/>
             </svg>
         </div>
     </div>
 
     <!-- ==================== WINDOWS LAYER ==================== -->
-    <div class="windows-layer" id="windowsLayer">
-        <!-- Finder Window -->
-        <div class="window" id="finderWindow" data-app="finder" style="width: 800px; height: 500px; left: 100px; top: 80px;">
+    <div class="windows-layer" id="windowsLayer"></div>
+
+    <!-- ==================== CONTEXT MENUS ==================== -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item">New Folder</div>
+        <div class="context-menu-item">Get Info</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item">Change Desktop Background...</div>
+        <div class="context-menu-item">Use Stacks</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item">Show View Options</div>
+    </div>
+
+    <div class="context-menu" id="dockContextMenu">
+        <div class="context-menu-item" data-action="options">Options</div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="open">Open</div>
+        <div class="context-menu-item" data-action="quit">Quit</div>
+    </div>
+
+    <!-- ==================== WINDOW TEMPLATES ==================== -->
+    <template id="finderWindowTemplate">
+        <div class="window" data-app="finder" style="width: 800px; height: 500px; left: 100px; top: 80px;">
             <div class="window-titlebar">
                 <div class="window-controls">
                     <button class="control-btn control-close">
@@ -926,17 +1076,41 @@
                     <div class="finder-sidebar">
                         <div class="sidebar-section">
                             <div class="sidebar-title">Favorites</div>
-                            <div class="sidebar-item active">📁 Recent</div>
-                            <div class="sidebar-item">🚀 Applications</div>
-                            <div class="sidebar-item">🖥️ Desktop</div>
-                            <div class="sidebar-item">📄 Documents</div>
-                            <div class="sidebar-item">⬇️ Downloads</div>
+                            <div class="sidebar-item active">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 9h5.5L13 3.5V9M6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4c0-1.11.89-2 2-2m0 18h12v-8H6v8z"/></svg>
+                                Recent
+                            </div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/></svg>
+                                Applications
+                            </div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                                Desktop
+                            </div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>
+                                Documents
+                            </div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm14-9H5v2h14v-2zM5 4v2h14V4H5zm0 5h14V7H5v2z"/></svg>
+                                Downloads
+                            </div>
                         </div>
                         <div class="sidebar-section">
                             <div class="sidebar-title">Locations</div>
-                            <div class="sidebar-item">💾 Macintosh HD</div>
-                            <div class="sidebar-item">☁️ iCloud Drive</div>
-                            <div class="sidebar-item">🌐 Network</div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>
+                                Macintosh HD
+                            </div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+                                iCloud Drive
+                            </div>
+                            <div class="sidebar-item">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                Network
+                            </div>
                         </div>
                     </div>
                     <div class="finder-content">
@@ -947,38 +1121,24 @@
                             <input type="text" class="finder-search" placeholder="Search">
                         </div>
                         <div class="finder-files" id="finderFiles">
-                            <div class="file-item" data-name="Documents">
-                                <div class="file-icon">📁</div>
-                                <div class="file-name">Documents</div>
-                            </div>
-                            <div class="file-item" data-name="Photos">
-                                <div class="file-icon">🖼️</div>
-                                <div class="file-name">Photos</div>
-                            </div>
-                            <div class="file-item" data-name="Resume.pdf">
-                                <div class="file-icon">📄</div>
-                                <div class="file-name">Resume.pdf</div>
-                            </div>
-                            <div class="file-item" data-name="Vacation.jpg">
-                                <div class="file-icon">🏖️</div>
-                                <div class="file-name">Vacation.jpg</div>
-                            </div>
-                            <div class="file-item" data-name="Music">
-                                <div class="file-icon">🎵</div>
-                                <div class="file-name">Music</div>
-                            </div>
-                            <div class="file-item" data-name="Videos">
-                                <div class="file-icon">🎬</div>
-                                <div class="file-name">Videos</div>
-                            </div>
+                            <!-- Files will be populated by JavaScript -->
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="resize-handle resize-n"></div>
+            <div class="resize-handle resize-s"></div>
+            <div class="resize-handle resize-e"></div>
+            <div class="resize-handle resize-w"></div>
+            <div class="resize-handle resize-ne"></div>
+            <div class="resize-handle resize-nw"></div>
+            <div class="resize-handle resize-se"></div>
+            <div class="resize-handle resize-sw"></div>
         </div>
+    </template>
 
-        <!-- Safari Window -->
-        <div class="window" id="safariWindow" data-app="safari" style="width: 900px; height: 600px; left: 150px; top: 100px;">
+    <template id="safariWindowTemplate">
+        <div class="window" data-app="safari" style="width: 900px; height: 600px; left: 150px; top: 100px;">
             <div class="window-titlebar">
                 <div class="window-controls">
                     <button class="control-btn control-close">
@@ -1016,7 +1176,7 @@
                     </div>
                     <div class="safari-content">
                         <div class="safari-default-page">
-                            <h1>🧭 Safari</h1>
+                            <h1>Safari</h1>
                             <p style="color: #666; margin-bottom: 20px;">Your window to the web</p>
                             <div class="safari-favorites">
                                 <div class="safari-favorite">
@@ -1040,10 +1200,19 @@
                     </div>
                 </div>
             </div>
+            <div class="resize-handle resize-n"></div>
+            <div class="resize-handle resize-s"></div>
+            <div class="resize-handle resize-e"></div>
+            <div class="resize-handle resize-w"></div>
+            <div class="resize-handle resize-ne"></div>
+            <div class="resize-handle resize-nw"></div>
+            <div class="resize-handle resize-se"></div>
+            <div class="resize-handle resize-sw"></div>
         </div>
+    </template>
 
-        <!-- TextEdit Window -->
-        <div class="window" id="texteditWindow" data-app="textedit" style="width: 700px; height: 500px; left: 200px; top: 120px;">
+    <template id="texteditWindowTemplate">
+        <div class="window" data-app="textedit" style="width: 700px; height: 500px; left: 200px; top: 120px;">
             <div class="window-titlebar">
                 <div class="window-controls">
                     <button class="control-btn control-close">
@@ -1067,9 +1236,9 @@
             <div class="window-content">
                 <div class="textedit-container">
                     <div class="textedit-toolbar">
-                        <button class="textedit-btn" id="boldBtn"><b>B</b></button>
-                        <button class="textedit-btn" id="italicBtn"><i>I</i></button>
-                        <button class="textedit-btn" id="underlineBtn"><u>U</u></button>
+                        <button class="textedit-btn" data-cmd="bold"><b>B</b></button>
+                        <button class="textedit-btn" data-cmd="italic"><i>I</i></button>
+                        <button class="textedit-btn" data-cmd="underline"><u>U</u></button>
                         <select class="textedit-select">
                             <option>Inter</option>
                             <option>Helvetica</option>
@@ -1083,8 +1252,7 @@
                             <option>24px</option>
                         </select>
                     </div>
-                    <div class="textedit-content" contenteditable="true" id="textEditContent">
-Welcome to TextEdit!
+                    <div class="textedit-content" contenteditable="true">Welcome to TextEdit!
 
 This is a simple text editor where you can type and format text. Try using the toolbar buttons above to style your text.
 
@@ -1095,23 +1263,19 @@ You can:
 • Change fonts
 • Adjust sizes
 
-Start typing to create your document...
-                    </div>
+Start typing to create your document...</div>
                 </div>
             </div>
+            <div class="resize-handle resize-n"></div>
+            <div class="resize-handle resize-s"></div>
+            <div class="resize-handle resize-e"></div>
+            <div class="resize-handle resize-w"></div>
+            <div class="resize-handle resize-ne"></div>
+            <div class="resize-handle resize-nw"></div>
+            <div class="resize-handle resize-se"></div>
+            <div class="resize-handle resize-sw"></div>
         </div>
-    </div>
-
-    <!-- ==================== CONTEXT MENU ==================== -->
-    <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item">New Folder</div>
-        <div class="context-menu-item">Get Info</div>
-        <div class="context-menu-separator"></div>
-        <div class="context-menu-item">Change Desktop Background...</div>
-        <div class="context-menu-item">Use Stacks</div>
-        <div class="context-menu-separator"></div>
-        <div class="context-menu-item">Show View Options</div>
-    </div>
+    </template>
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
@@ -1120,8 +1284,48 @@ Start typing to create your document...
             activeWindow: null,
             windows: [],
             maxZIndex: 100,
-            openApps: new Set(['finder'])
+            openApps: new Set(['finder']),
+            dockHoverIndex: -1
         };
+
+        // ==================== FILE DATA ====================
+        const fileIcons = {
+            folder: '<svg viewBox="0 0 48 48"><defs><linearGradient id="fGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#66B3FF;stop-opacity:1"/><stop offset="100%" style="stop-color:#3399FF;stop-opacity:1"/></linearGradient></defs><rect x="4" y="12" width="40" height="28" rx="2" fill="url(#fGrad)"/></svg>',
+            pdf: '<svg viewBox="0 0 48 48"><rect x="8" y="4" width="32" height="40" rx="2" fill="#EF4444"/><text x="24" y="30" text-anchor="middle" fill="white" font-size="12" font-weight="bold">PDF</text></svg>',
+            image: '<svg viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="2" fill="#10B981"/><circle cx="16" cy="16" r="3" fill="white"/><path d="M6 35l8-8 6 6 10-10 12 8v11H6z" fill="white" opacity="0.6"/></svg>',
+            video: '<svg viewBox="0 0 48 48"><rect x="6" y="10" width="36" height="28" rx="2" fill="#8B5CF6"/><path d="M20 16l12 8-12 8V16z" fill="white"/></svg>',
+            audio: '<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="2" fill="#F59E0B"/><circle cx="24" cy="28" r="6" fill="white"/><path d="M24 16v6" stroke="white" stroke-width="2"/></svg>',
+            text: '<svg viewBox="0 0 48 48"><rect x="10" y="6" width="28" height="36" rx="2" fill="#64748B"/><line x1="16" y1="14" x2="32" y2="14" stroke="white" stroke-width="2"/><line x1="16" y1="20" x2="32" y2="20" stroke="white" stroke-width="2"/><line x1="16" y1="26" x2="28" y2="26" stroke="white" stroke-width="2"/></svg>',
+            zip: '<svg viewBox="0 0 48 48"><rect x="12" y="6" width="24" height="36" rx="2" fill="#6366F1"/><rect x="22" y="10" width="4" height="3" fill="white"/><rect x="22" y="16" width="4" height="3" fill="white"/><rect x="22" y="22" width="4" height="3" fill="white"/></svg>',
+            app: '<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="6" fill="#3B82F6"/><circle cx="24" cy="24" r="8" fill="white" opacity="0.9"/></svg>'
+        };
+
+        const finderFiles = [
+            { name: 'Documents', type: 'folder' },
+            { name: 'Photos', type: 'folder' },
+            { name: 'Music', type: 'folder' },
+            { name: 'Videos', type: 'folder' },
+            { name: 'Downloads', type: 'folder' },
+            { name: 'Desktop', type: 'folder' },
+            { name: 'Resume.pdf', type: 'pdf' },
+            { name: 'Project_Proposal.pdf', type: 'pdf' },
+            { name: 'Vacation.jpg', type: 'image' },
+            { name: 'Family_Photo.jpg', type: 'image' },
+            { name: 'Screenshot.png', type: 'image' },
+            { name: 'Wallpaper.jpg', type: 'image' },
+            { name: 'Tutorial.mp4', type: 'video' },
+            { name: 'Presentation.mp4', type: 'video' },
+            { name: 'Song.mp3', type: 'audio' },
+            { name: 'Podcast.mp3', type: 'audio' },
+            { name: 'Notes.txt', type: 'text' },
+            { name: 'TODO.txt', type: 'text' },
+            { name: 'Archive.zip', type: 'zip' },
+            { name: 'Backup.zip', type: 'zip' },
+            { name: 'Calculator.app', type: 'app' },
+            { name: 'Safari.app', type: 'app' },
+            { name: 'Spreadsheet.xlsx', type: 'text' },
+            { name: 'Budget.xlsx', type: 'text' }
+        ];
 
         // ==================== BOOT SEQUENCE ====================
         function startBoot() {
@@ -1144,13 +1348,81 @@ Start typing to create your document...
         }
 
         // ==================== WINDOW MANAGEMENT ====================
+        function createWindow(appName) {
+            const template = document.getElementById(`${appName}WindowTemplate`);
+            if (!template) return null;
+
+            const clone = template.content.cloneNode(true);
+            const window = clone.querySelector('.window');
+            window.id = `${appName}Window`;
+
+            // Populate Finder files
+            if (appName === 'finder') {
+                const filesContainer = window.querySelector('#finderFiles');
+                finderFiles.forEach(file => {
+                    const fileEl = document.createElement('div');
+                    fileEl.className = 'file-item';
+                    fileEl.dataset.name = file.name;
+                    fileEl.innerHTML = fileIcons[file.type] + `<div class="file-name">${file.name}</div>`;
+                    fileEl.addEventListener('click', function() {
+                        window.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
+                        this.classList.add('selected');
+                    });
+                    filesContainer.appendChild(fileEl);
+                });
+            }
+
+            // Safari address bar functionality
+            if (appName === 'safari') {
+                const addressBar = window.querySelector('.safari-address-bar');
+                const content = window.querySelector('.safari-content');
+                addressBar.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        let url = e.target.value.trim();
+                        if (url) {
+                            if (!url.startsWith('http')) {
+                                url = 'https://' + url;
+                            }
+                            content.innerHTML = `<iframe class="safari-iframe" src="${url}" sandbox="allow-scripts allow-same-origin"></iframe>`;
+                        }
+                    }
+                });
+            }
+
+            // TextEdit formatting
+            if (appName === 'textedit') {
+                const content = window.querySelector('.textedit-content');
+                window.querySelectorAll('.textedit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.execCommand(this.dataset.cmd);
+                        content.focus();
+                    });
+                });
+
+                // Auto-save
+                content.addEventListener('input', debounce(() => {
+                    localStorage.setItem('textedit-content', content.innerHTML);
+                }, 1000));
+
+                const saved = localStorage.getItem('textedit-content');
+                if (saved) content.innerHTML = saved;
+            }
+
+            document.getElementById('windowsLayer').appendChild(window);
+            setupWindowControls(window);
+            makeResizable(window);
+            return window;
+        }
+
         function openWindow(appName) {
-            const windowId = `${appName}Window`;
-            const window = document.getElementById(windowId);
+            let window = document.getElementById(`${appName}Window`);
+
+            if (!window) {
+                window = createWindow(appName);
+            }
 
             if (!window) return;
 
-            // If already open, just focus it
             if (window.classList.contains('visible')) {
                 focusWindow(window);
                 return;
@@ -1162,14 +1434,13 @@ Start typing to create your document...
             focusWindow(window);
             updateRunningIndicators();
 
-            // Add bounce animation to dock icon
+            // Bounce animation
             const dockIcon = document.querySelector(`.dock-icon[data-app="${appName}"]`);
             if (dockIcon) {
                 dockIcon.classList.add('bouncing');
-                setTimeout(() => dockIcon.classList.remove('bouncing'), 1800);
+                setTimeout(() => dockIcon.classList.remove('bouncing'), 1600);
             }
 
-            // Update menu bar app name
             updateAppName(appName);
         }
 
@@ -1182,7 +1453,6 @@ Start typing to create your document...
                 state.openApps.delete(appName);
                 updateRunningIndicators();
 
-                // Focus next window or default to Finder
                 if (state.windows.length > 0) {
                     focusWindow(state.windows[state.windows.length - 1]);
                 } else {
@@ -1199,8 +1469,8 @@ Start typing to create your document...
                 const rect = dockIcon.getBoundingClientRect();
                 const windowRect = window.getBoundingClientRect();
 
-                window.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                window.style.transform = `scale(0.1) translate(${rect.left - windowRect.left}px, ${rect.top - windowRect.top}px)`;
+                window.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                window.style.transform = `scale(0.05) translate(${rect.left - windowRect.left}px, ${rect.top - windowRect.top}px)`;
                 window.style.opacity = '0';
 
                 setTimeout(() => {
@@ -1208,7 +1478,7 @@ Start typing to create your document...
                     window.style.transform = '';
                     window.style.transition = '';
                     window.style.opacity = '';
-                }, 400);
+                }, 500);
             }
         }
 
@@ -1254,22 +1524,31 @@ Start typing to create your document...
         }
 
         function updateRunningIndicators() {
-            document.querySelectorAll('.running-indicator').forEach(indicator => {
-                indicator.style.display = 'none';
-            });
+            document.querySelectorAll('.running-indicator').forEach(i => i.style.display = 'none');
 
             state.openApps.forEach(app => {
-                const dockIcon = document.querySelector(`.dock-icon[data-app="${app}"]`);
-                if (dockIcon) {
-                    const indicator = dockIcon.querySelector('.running-indicator');
+                const icon = document.querySelector(`.dock-icon[data-app="${app}"]`);
+                if (icon) {
+                    const indicator = icon.querySelector('.running-indicator');
                     if (indicator) indicator.style.display = 'block';
                 }
             });
         }
 
         // ==================== DRAG FUNCTIONALITY ====================
-        function makeDraggable(window) {
+        function setupWindowControls(window) {
             const titlebar = window.querySelector('.window-titlebar');
+            const closeBtn = window.querySelector('.control-close');
+            const minimizeBtn = window.querySelector('.control-minimize');
+            const maximizeBtn = window.querySelector('.control-maximize');
+
+            closeBtn.addEventListener('click', () => closeWindow(window));
+            minimizeBtn.addEventListener('click', () => minimizeWindow(window));
+            maximizeBtn.addEventListener('click', () => maximizeWindow(window));
+
+            window.addEventListener('mousedown', () => focusWindow(window));
+
+            // Drag
             let isDragging = false;
             let currentX, currentY, initialX, initialY;
 
@@ -1279,23 +1558,137 @@ Start typing to create your document...
                 isDragging = true;
                 initialX = e.clientX - parseInt(window.style.left || 0);
                 initialY = e.clientY - parseInt(window.style.top || 0);
-
                 focusWindow(window);
             });
 
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-
                 e.preventDefault();
                 currentX = e.clientX - initialX;
                 currentY = e.clientY - initialY;
-
                 window.style.left = currentX + 'px';
                 window.style.top = Math.max(0, currentY) + 'px';
             });
 
             document.addEventListener('mouseup', () => {
                 isDragging = false;
+            });
+        }
+
+        // ==================== RESIZE FUNCTIONALITY ====================
+        function makeResizable(window) {
+            const handles = window.querySelectorAll('.resize-handle');
+            handles.forEach(handle => {
+                handle.addEventListener('mousedown', initResize);
+            });
+
+            let isResizing = false;
+            let currentHandle = null;
+            let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+            function initResize(e) {
+                isResizing = true;
+                currentHandle = e.target;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(window.style.width);
+                startHeight = parseInt(window.style.height);
+                startLeft = parseInt(window.style.left);
+                startTop = parseInt(window.style.top);
+
+                e.stopPropagation();
+                e.preventDefault();
+
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            }
+
+            function resize(e) {
+                if (!isResizing) return;
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                if (currentHandle.classList.contains('resize-e')) {
+                    window.style.width = Math.max(400, startWidth + dx) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-w')) {
+                    const newWidth = Math.max(400, startWidth - dx);
+                    window.style.width = newWidth + 'px';
+                    window.style.left = (startLeft + (startWidth - newWidth)) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-s')) {
+                    window.style.height = Math.max(300, startHeight + dy) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-n')) {
+                    const newHeight = Math.max(300, startHeight - dy);
+                    window.style.height = newHeight + 'px';
+                    window.style.top = (startTop + (startHeight - newHeight)) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-se')) {
+                    window.style.width = Math.max(400, startWidth + dx) + 'px';
+                    window.style.height = Math.max(300, startHeight + dy) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-sw')) {
+                    const newWidth = Math.max(400, startWidth - dx);
+                    window.style.width = newWidth + 'px';
+                    window.style.left = (startLeft + (startWidth - newWidth)) + 'px';
+                    window.style.height = Math.max(300, startHeight + dy) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-ne')) {
+                    window.style.width = Math.max(400, startWidth + dx) + 'px';
+                    const newHeight = Math.max(300, startHeight - dy);
+                    window.style.height = newHeight + 'px';
+                    window.style.top = (startTop + (startHeight - newHeight)) + 'px';
+                }
+                if (currentHandle.classList.contains('resize-nw')) {
+                    const newWidth = Math.max(400, startWidth - dx);
+                    window.style.width = newWidth + 'px';
+                    window.style.left = (startLeft + (startWidth - newWidth)) + 'px';
+                    const newHeight = Math.max(300, startHeight - dy);
+                    window.style.height = newHeight + 'px';
+                    window.style.top = (startTop + (startHeight - newHeight)) + 'px';
+                }
+            }
+
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        }
+
+        // ==================== DOCK MAGNIFICATION ====================
+        function updateDockMagnification(hoveredIndex) {
+            const icons = document.querySelectorAll('.dock-icon');
+
+            icons.forEach((icon, index) => {
+                const iconIndex = parseInt(icon.dataset.index);
+                if (isNaN(iconIndex)) {
+                    icon.style.transform = '';
+                    return;
+                }
+
+                if (hoveredIndex === -1) {
+                    icon.style.transform = '';
+                } else {
+                    const distance = Math.abs(iconIndex - hoveredIndex);
+                    let scale = 1;
+                    let translateY = 0;
+
+                    if (distance === 0) {
+                        scale = 1.8;
+                        translateY = -12;
+                    } else if (distance === 1) {
+                        scale = 1.4;
+                        translateY = -6;
+                    } else if (distance === 2) {
+                        scale = 1.2;
+                        translateY = -3;
+                    }
+
+                    icon.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+                }
             });
         }
 
@@ -1307,6 +1700,26 @@ Start typing to create your document...
                     openWindow(appName);
                 }
             });
+
+            icon.addEventListener('mouseenter', function() {
+                const index = parseInt(this.dataset.index);
+                if (!isNaN(index)) {
+                    updateDockMagnification(index);
+                }
+            });
+
+            icon.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const menu = document.getElementById('dockContextMenu');
+                menu.style.left = e.clientX + 'px';
+                menu.style.top = e.clientY + 'px';
+                menu.classList.add('visible');
+                menu.dataset.app = this.dataset.app;
+            });
+        });
+
+        document.getElementById('dock').addEventListener('mouseleave', () => {
+            updateDockMagnification(-1);
         });
 
         // ==================== DESKTOP ICONS ====================
@@ -1318,25 +1731,8 @@ Start typing to create your document...
 
             icon.addEventListener('dblclick', () => {
                 const appName = icon.dataset.app;
-                if (appName) {
-                    openWindow(appName);
-                }
+                if (appName) openWindow(appName);
             });
-        });
-
-        // ==================== WINDOW CONTROLS ====================
-        document.querySelectorAll('.window').forEach(window => {
-            const closeBtn = window.querySelector('.control-close');
-            const minimizeBtn = window.querySelector('.control-minimize');
-            const maximizeBtn = window.querySelector('.control-maximize');
-
-            closeBtn.addEventListener('click', () => closeWindow(window));
-            minimizeBtn.addEventListener('click', () => minimizeWindow(window));
-            maximizeBtn.addEventListener('click', () => maximizeWindow(window));
-
-            window.addEventListener('mousedown', () => focusWindow(window));
-
-            makeDraggable(window);
         });
 
         // ==================== MENU BAR ====================
@@ -1351,6 +1747,7 @@ Start typing to create your document...
         document.addEventListener('click', () => {
             appleMenuDropdown.classList.remove('visible');
             document.getElementById('contextMenu').classList.remove('visible');
+            document.getElementById('dockContextMenu').classList.remove('visible');
         });
 
         appleMenuDropdown.addEventListener('click', (e) => {
@@ -1363,7 +1760,7 @@ Start typing to create your document...
             }
         });
 
-        // ==================== CONTEXT MENU ====================
+        // ==================== CONTEXT MENUS ====================
         document.getElementById('desktop').addEventListener('contextmenu', (e) => {
             e.preventDefault();
             const contextMenu = document.getElementById('contextMenu');
@@ -1372,99 +1769,51 @@ Start typing to create your document...
             contextMenu.classList.add('visible');
         });
 
-        // ==================== TEXTEDIT FORMATTING ====================
-        document.getElementById('boldBtn').addEventListener('click', () => {
-            document.execCommand('bold');
-            document.getElementById('textEditContent').focus();
-        });
+        document.getElementById('dockContextMenu').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const action = e.target.dataset.action;
+            const appName = e.target.closest('.context-menu').dataset.app;
 
-        document.getElementById('italicBtn').addEventListener('click', () => {
-            document.execCommand('italic');
-            document.getElementById('textEditContent').focus();
-        });
+            if (action === 'open' && appName) {
+                openWindow(appName);
+            } else if (action === 'quit' && appName) {
+                const window = document.getElementById(`${appName}Window`);
+                if (window) closeWindow(window);
+            }
 
-        document.getElementById('underlineBtn').addEventListener('click', () => {
-            document.execCommand('underline');
-            document.getElementById('textEditContent').focus();
-        });
-
-        // ==================== FINDER FILE SELECTION ====================
-        document.querySelectorAll('.file-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
-                item.classList.add('selected');
-            });
+            document.getElementById('dockContextMenu').classList.remove('visible');
         });
 
         // ==================== KEYBOARD SHORTCUTS ====================
         document.addEventListener('keydown', (e) => {
-            // Cmd/Ctrl + W - Close window
             if ((e.metaKey || e.ctrlKey) && e.key === 'w') {
                 e.preventDefault();
-                if (state.activeWindow) {
-                    closeWindow(state.activeWindow);
-                }
+                if (state.activeWindow) closeWindow(state.activeWindow);
             }
 
-            // Cmd/Ctrl + M - Minimize window
             if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
                 e.preventDefault();
-                if (state.activeWindow) {
-                    minimizeWindow(state.activeWindow);
-                }
+                if (state.activeWindow) minimizeWindow(state.activeWindow);
             }
 
-            // Cmd/Ctrl + Q - Quit app (close window)
             if ((e.metaKey || e.ctrlKey) && e.key === 'q') {
                 e.preventDefault();
-                if (state.activeWindow) {
-                    closeWindow(state.activeWindow);
-                }
+                if (state.activeWindow) closeWindow(state.activeWindow);
             }
         });
 
-        // ==================== SAFARI ADDRESS BAR ====================
-        const safariAddressBar = document.querySelector('.safari-address-bar');
-        if (safariAddressBar) {
-            safariAddressBar.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const url = e.target.value;
-                    // In a real implementation, you'd load the URL
-                    console.log('Navigate to:', url);
-                }
-            });
-        }
-
-        // ==================== AUTO-SAVE TEXTEDIT ====================
-        const textEditContent = document.getElementById('textEditContent');
-        if (textEditContent) {
-            textEditContent.addEventListener('input', debounce(() => {
-                localStorage.setItem('textedit-content', textEditContent.innerHTML);
-            }, 1000));
-
-            // Load saved content
-            const savedContent = localStorage.getItem('textedit-content');
-            if (savedContent) {
-                textEditContent.innerHTML = savedContent;
-            }
-        }
-
+        // ==================== UTILITIES ====================
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
                 clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
+                timeout = setTimeout(() => func(...args), wait);
             };
         }
 
         // ==================== INITIALIZE ====================
         window.addEventListener('load', () => {
             startBoot();
-            // Open Finder by default after boot
             setTimeout(() => {
                 openWindow('finder');
             }, 5000);
